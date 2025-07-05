@@ -4,23 +4,21 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateContratantesTable extends Migration
+class CreateFornecedoresTable extends Migration
 {
     public function up()
     {
-        Schema::create('contratantes', function (Blueprint $table) {
+        Schema::connection('tenant_temp')->create('fornecedores', function (Blueprint $table) {
             $table->id();
             $table->string('nome');
-            $table->string('cnpj', 18)->unique();
+            $table->string('cnpj')->nullable();
             $table->string('telefone')->nullable();
-            $table->string('email')->unique();
-            $table->string('banco_dados');      // ← nome do banco tenant
             $table->timestamps();
         });
     }
 
     public function down()
     {
-        Schema::dropIfExists('contratantes');
+        Schema::connection('tenant_temp')->dropIfExists('fornecedores');
     }
 }

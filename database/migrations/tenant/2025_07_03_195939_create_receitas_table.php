@@ -4,24 +4,21 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
+class CreateReceitasTable extends Migration
 {
-    /**
-     * Run the migrations.
-     */
-    public function up(): void
+    public function up()
     {
-        Schema::create('receitas', function (Blueprint $table) {
+        Schema::connection('tenant_temp')->create('receitas', function (Blueprint $table) {
             $table->id();
+            $table->string('descricao');
+            $table->decimal('valor', 10, 2);
+            $table->date('data_recebimento');
             $table->timestamps();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
-    public function down(): void
+    public function down()
     {
-        Schema::dropIfExists('receitas');
+        Schema::connection('tenant_temp')->dropIfExists('receitas');
     }
-};
+}

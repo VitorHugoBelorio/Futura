@@ -6,13 +6,11 @@ use Illuminate\Database\Eloquent\Model;
 
 class Fornecedor extends Model
 {
-    // protected $table = 'fornecedores'; <- Revisar se é útil
+    protected $connection = 'tenant_temp';
     protected $fillable = [
         'nome',
-        'email',
+        'cnpj',
         'telefone',
-        'endereco',
-        'documento', // Pode ser CPF ou CNPJ
     ];
 
     public function despesas()

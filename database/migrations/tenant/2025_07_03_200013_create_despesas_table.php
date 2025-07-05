@@ -4,24 +4,22 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
+class CreateDespesasTable extends Migration
 {
-    /**
-     * Run the migrations.
-     */
-    public function up(): void
+    public function up()
     {
-        Schema::create('despesas', function (Blueprint $table) {
+        Schema::connection('tenant_temp')->create('despesas', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('fornecedor_id')->constrained('fornecedores')->cascadeOnDelete();
+            $table->string('descricao');
+            $table->decimal('valor', 10, 2);
+            $table->date('data_pagamento');
             $table->timestamps();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
-    public function down(): void
+    public function down()
     {
-        Schema::dropIfExists('despesas');
+        Schema::connection('tenant_temp')->dropIfExists('despesas');
     }
-};
+}

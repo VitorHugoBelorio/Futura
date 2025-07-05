@@ -6,20 +6,16 @@ use Illuminate\Database\Eloquent\Model;
 
 class Despesa extends Model
 {
-    // revisar se é necessário definir se foi pago ou não
-    
-    // protected $table = 'despesas'; <- Revisar se é útil
-    
+    protected $connection = 'tenant_temp';
     protected $fillable = [
         'descricao',
         'valor',
-        'data',
-        'contratante_id', // Chave estrangeira para Contratante
-        'fornecedor_id', // Chave estrangeira para fornecedor
+        'data_pagamento',
+        'fornecedor_id',
     ];
 
-    public function contratante()
+    public function fornecedor()
     {
-        return $this->belongsTo(Contratante::class);
+        return $this->belongsTo(Fornecedor::class);
     }
 }
