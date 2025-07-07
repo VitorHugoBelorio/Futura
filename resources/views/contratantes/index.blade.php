@@ -28,6 +28,7 @@
                     <td>{{ $contratante->email }}</td>
                     <td>{{ $contratante->telefone }}</td>
                     <td>
+                        <a href="{{ route('contratantes.show', $contratante) }}" class="btn btn-sm btn-info">Ver</a>
                         <a href="{{ route('contratantes.edit', $contratante) }}" class="btn btn-sm btn-warning">Editar</a>
                         <form action="{{ route('contratantes.destroy', $contratante) }}" method="POST" class="d-inline"
                               onsubmit="return confirm('Tem certeza que deseja excluir?')">

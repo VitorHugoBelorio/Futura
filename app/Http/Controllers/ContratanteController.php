@@ -58,9 +58,29 @@ class ContratanteController extends Controller
 
     public function show(Contratante $contratante)
     {
-        return view('contratantes.show', compact('contratante'));
-    }
+        // Define este contratante como o ativo
+        session(['contratante_id' => $contratante->id]);
 
+        // Define a conexão dinamicamente
+        config(['database.connections.tenant_temp.database' => $contratante->banco_dados]);
+
+        try {
+            DB::connection('tenant_temp')->getPdo();
+
+            // Buscar os dados do banco do contratante
+            $receitas = DB::connection('tenant_temp')->table('receitas')->get();
+            $despesas = DB::connection('tenant_temp')->table('despesas')->get();
+            $fornecedores = DB::connection('tenant_temp')->table('fornecedores')->get();
+
+        } catch (\Exception $e) {
+            return back()->with('error', 'Erro ao conectar com o banco do contratante.');
+        }
+
+        return view('contratantes.show', compact(
+            'contratante', 'receitas', 'despesas', 'fornecedores'
+        ));
+    }
+    
     public function edit(Contratante $contratante)
     {
         return view('contratantes.edit', compact('contratante'));
