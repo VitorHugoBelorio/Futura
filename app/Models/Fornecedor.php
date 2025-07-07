@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 class Fornecedor extends Model
 {
     protected $connection = 'tenant_temp';
+    protected $table = 'fornecedores'; 
+
     protected $fillable = [
         'nome',
         'cnpj',

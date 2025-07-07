@@ -65,8 +65,23 @@
     @if($despesas->count())
         <ul class="list-group mb-3">
             @foreach($despesas as $despesa)
-                <li class="list-group-item">
-                    {{ $despesa->descricao }} - R$ {{ number_format($despesa->valor, 2, ',', '.') }}
+                <li class="list-group-item" style="background-color: #f8f9fa;">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            {{ $despesa->descricao }} - R$ {{ number_format($despesa->valor, 2, ',', '.') }}
+                            @if($despesa->fornecedor)
+                                <small class="text-muted">(Fornecedor: {{ $despesa->fornecedor->nome }})</small>
+                            @endif
+                        </div>
+                        <div class="d-flex gap-2">
+                            <a href="{{ route('despesas.edit', $despesa->id) }}" class="btn btn-sm btn-warning">Editar</a>
+                            <form action="{{ route('despesas.destroy', $despesa->id) }}" method="POST" onsubmit="return confirm('Deseja realmente excluir esta despesa?')">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="btn btn-sm btn-danger">Excluir</button>
+                            </form>
+                        </div>
+                    </div>
                 </li>
             @endforeach
         </ul>
