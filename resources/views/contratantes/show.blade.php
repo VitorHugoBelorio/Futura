@@ -38,14 +38,27 @@
     @if($receitas->count())
         <ul class="list-group mb-3">
             @foreach($receitas as $receita)
-                <li class="list-group-item">
-                    {{ $receita->descricao }} - R$ {{ number_format($receita->valor, 2, ',', '.') }}
+                <li class="list-group-item" style="background-color: #e6f9e6;">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            {{ $receita->descricao }} - R$ {{ number_format($receita->valor, 2, ',', '.') }}
+                        </div>
+                        <div class="d-flex gap-2">
+                            <a href="{{ route('receitas.edit', $receita->id) }}" class="btn btn-sm btn-warning">Editar</a>
+                            <form action="{{ route('receitas.destroy', $receita->id) }}" method="POST" onsubmit="return confirm('Deseja realmente excluir esta receita?')">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="btn btn-sm btn-danger">Excluir</button>
+                            </form>
+                        </div>
+                    </div>
                 </li>
             @endforeach
         </ul>
     @else
         <p>Nenhuma receita cadastrada.</p>
     @endif
+
 
     {{-- Despesas --}}
     <h3>Despesas</h3>

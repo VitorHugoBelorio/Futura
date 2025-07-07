@@ -34,7 +34,7 @@
                               onsubmit="return confirm('Tem certeza que deseja excluir?')">
                             @csrf
                             @method('DELETE')
-                            <button class="btn btn-sm btn-danger">Excluir</button>
+                            <button class="btn btn-sm btn-danger">Excluir</button> <!--CORRIGIR: Ao excluir um contratante, excluir o seu banco de dados também-->
                         </form>
                     </td>
                 </tr>
@@ -43,3 +43,4 @@
     </table>
 </div>
 @endsection
+ 
