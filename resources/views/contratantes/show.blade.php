@@ -25,7 +25,7 @@
         <ul class="list-group mb-3">
             @foreach($fornecedores as $fornecedor)
                 <li class="list-group-item">
-                    {{ $fornecedor->nome }} - {{ $fornecedor->documento }}
+                    {{ $fornecedor->nome }} - {{ $fornecedor->cnpj }}
                 </li>
             @endforeach
         </ul>
@@ -65,7 +65,7 @@
     @if($despesas->count())
         <ul class="list-group mb-3">
             @foreach($despesas as $despesa)
-                <li class="list-group-item" style="background-color: #f8f9fa;">
+                <li class="list-group-item" style="background-color: #fdeaea;"> {{-- <- ALTERADO aqui --}}
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
                             {{ $despesa->descricao }} - R$ {{ number_format($despesa->valor, 2, ',', '.') }}
@@ -88,6 +88,7 @@
     @else
         <p>Nenhuma despesa cadastrada.</p>
     @endif
+
 
     <a href="{{ route('contratantes.index') }}" class="btn btn-secondary">Voltar</a>
 </div>

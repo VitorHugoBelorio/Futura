@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Despesa extends Model
 {
-    protected $connection = 'tenant_temp';
+    // Não defina connection fixa aqui. A conexão será setada dinamicamente.
     protected $fillable = [
         'descricao',
         'valor',

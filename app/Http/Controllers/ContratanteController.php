@@ -3,6 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Contratante;
+use App\Models\Despesa;
+use App\Models\Fornecedor;
+use App\Models\Receita;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Artisan;
@@ -31,7 +34,6 @@ class ContratanteController extends Controller
 
         $nomeBanco = 'empresa_' . strtolower(preg_replace('/\s+/', '_', $request->nome));
 
-        // Criação do banco de dados do contratante
         DB::statement("CREATE DATABASE `$nomeBanco`");
 
         $contratante = Contratante::create([
@@ -42,10 +44,8 @@ class ContratanteController extends Controller
             'banco_dados' => $nomeBanco,
         ]);
 
-        // Configura a conexão dinâmica
         config(['database.connections.tenant_temp.database' => $nomeBanco]);
 
-        // Executa as migrations da pasta tenant
         Artisan::call('migrate', [
             '--path' => 'database/migrations/tenant',
             '--database' => 'tenant_temp',
@@ -58,19 +58,27 @@ class ContratanteController extends Controller
 
     public function show(Contratante $contratante)
     {
-        // Define este contratante como o ativo
         session(['contratante_id' => $contratante->id]);
-
-        // Define a conexão dinamicamente
         config(['database.connections.tenant_temp.database' => $contratante->banco_dados]);
 
         try {
             DB::connection('tenant_temp')->getPdo();
 
-            // Buscar os dados do banco do contratante
-            $receitas = DB::connection('tenant_temp')->table('receitas')->get();
-            $despesas = DB::connection('tenant_temp')->table('despesas')->get();
-            $fornecedores = DB::connection('tenant_temp')->table('fornecedores')->get();
+            $receitas = (new \App\Models\Receita())
+                ->setConnection('tenant_temp')
+                ->newQuery()
+                ->get();
+
+            $despesas = (new \App\Models\Despesa())
+                ->setConnection('tenant_temp')
+                ->newQuery()
+                ->with('fornecedor')
+                ->get();
+
+            $fornecedores = (new \App\Models\Fornecedor())
+                ->setConnection('tenant_temp')
+                ->newQuery()
+                ->get();
 
         } catch (\Exception $e) {
             return back()->with('error', 'Erro ao conectar com o banco do contratante.');
@@ -80,7 +88,7 @@ class ContratanteController extends Controller
             'contratante', 'receitas', 'despesas', 'fornecedores'
         ));
     }
-    
+
     public function edit(Contratante $contratante)
     {
         return view('contratantes.edit', compact('contratante'));
@@ -103,8 +111,6 @@ class ContratanteController extends Controller
 
     public function destroy(Contratante $contratante)
     {
-        // ⚠️ NÃO removemos o banco aqui — isso depende da sua política de exclusão
-
         $contratante->delete();
 
         return redirect()->route('contratantes.index')
