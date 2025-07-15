@@ -125,9 +125,22 @@ class ContratanteController extends Controller
 
     public function destroy(Contratante $contratante)
     {
-        $contratante->delete();
+        try {
+            // Armazena o nome do banco antes de deletar o contratante
+            $nomeBanco = $contratante->banco_dados;
 
-        return redirect()->route('contratantes.index')
-                         ->with('success', 'Contratante excluído com sucesso!');
+            // Remove o contratante da tabela principal
+            $contratante->delete();
+
+            // Executa a exclusão do banco de dados (após remover o registro)
+            DB::statement("DROP DATABASE IF EXISTS `$nomeBanco`");
+
+            return redirect()->route('contratantes.index')
+                            ->with('success', 'Contratante e banco de dados removidos com sucesso!');
+        } catch (\Exception $e) {
+            return redirect()->route('contratantes.index')
+                            ->with('error', 'Erro ao excluir contratante: ' . $e->getMessage());
+        }
     }
+
 }
