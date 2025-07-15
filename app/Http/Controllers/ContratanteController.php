@@ -9,6 +9,7 @@ use App\Models\Receita;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Carbon;
 
 class ContratanteController extends Controller
 {
@@ -56,7 +57,7 @@ class ContratanteController extends Controller
                          ->with('success', 'Contratante criado com sucesso e banco provisionado!');
     }
 
-    public function show(Contratante $contratante)
+    public function show(Contratante $contratante, Request $request)
     {
         session(['contratante_id' => $contratante->id]);
         config(['database.connections.tenant_temp.database' => $contratante->banco_dados]);
@@ -64,30 +65,43 @@ class ContratanteController extends Controller
         try {
             DB::connection('tenant_temp')->getPdo();
 
-            $receitas = (new \App\Models\Receita())
+            // Se houver filtro na requisição, usa ele. Senão, usa o mês atual
+            $dataInicio = $request->input('data_inicio') ?? Carbon::now()->startOfMonth()->toDateString();
+            $dataFim = $request->input('data_fim') ?? Carbon::now()->endOfMonth()->toDateString();
+
+            $receitas = (new Receita())
                 ->setConnection('tenant_temp')
-                ->newQuery()
+                ->whereBetween('data_recebimento', [$dataInicio, $dataFim])
                 ->get();
 
-            $despesas = (new \App\Models\Despesa())
+            $despesas = (new Despesa())
                 ->setConnection('tenant_temp')
-                ->newQuery()
+                ->whereBetween('data_pagamento', [$dataInicio, $dataFim])
                 ->with('fornecedor')
                 ->get();
 
-            $fornecedores = (new \App\Models\Fornecedor())
+            $fornecedores = (new Fornecedor())
                 ->setConnection('tenant_temp')
-                ->newQuery()
                 ->get();
 
+            $saldo = $receitas->sum('valor') - $despesas->sum('valor');
+
         } catch (\Exception $e) {
-            return back()->with('error', 'Erro ao conectar com o banco do contratante.');
+            return back()->with('error', 'Erro ao conectar com o banco do contratante: ' . $e->getMessage());
         }
 
         return view('contratantes.show', compact(
-            'contratante', 'receitas', 'despesas', 'fornecedores'
+            'contratante',
+            'receitas',
+            'despesas',
+            'fornecedores',
+            'saldo',
+            'dataInicio',
+            'dataFim'
         ));
     }
+
+
 
     public function edit(Contratante $contratante)
     {

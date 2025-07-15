@@ -4,6 +4,31 @@
 <div class="container">
     <h1>Detalhes do Contratante</h1>
 
+    {{-- Situação Financeira --}}
+    <div class="alert alert-info d-flex justify-content-between align-items-center">
+        <div>
+            <strong>Situação atual:</strong> R$
+            {{ number_format($saldo, 2, ',', '.') }}
+        </div>
+        <form method="GET" class="d-flex align-items-center gap-2">
+            <div>
+                <label for="data_inicio" class="form-label mb-0 small">De:</label>
+                <input type="date" name="data_inicio" id="data_inicio" class="form-control form-control-sm"
+                    value="{{ $dataInicio }}">
+            </div>
+            <div>
+                <label for="data_fim" class="form-label mb-0 small">Até:</label>
+                <input type="date" name="data_fim" id="data_fim" class="form-control form-control-sm"
+                    value="{{ $dataFim }}">
+            </div>
+            <div class="mt-3">
+                <button type="submit" class="btn btn-sm btn-primary">Filtrar</button>
+            </div>
+        </form>
+    </div>
+
+
+
     <ul class="list-group mb-3">
         <li class="list-group-item"><strong>Nome:</strong> {{ $contratante->nome }}</li>
         <li class="list-group-item"><strong>CNPJ:</strong> {{ $contratante->cnpj }}</li>
