@@ -1,20 +1,20 @@
 <?php
 
+use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\ContratanteController;
-use App\Http\Controllers\ContratoAtivoController;
-use App\Http\Controllers\ReceitaController;
-use App\Http\Controllers\DespesaController;
-use App\Http\Controllers\FornecedorController;
-use App\Http\Middleware\UsarBancoDoContratante;
 
-Route::resource('contratantes', ContratanteController::class);
-
-Route::get('/selecionar-contratante', [ContratoAtivoController::class, 'index'])->name('selecionar.contratante');
-Route::post('/selecionar-contratante', [ContratoAtivoController::class, 'definir'])->name('selecionar.contratante.definir');
-
-Route::middleware([UsarBancoDoContratante::class])->group(function () {
-    Route::resource('fornecedores', FornecedorController::class)->except(['index', 'show']);
-    Route::resource('receitas', ReceitaController::class)->except(['index', 'show']);
-    Route::resource('despesas', DespesaController::class)->except(['index', 'show']);
+Route::get('/', function () {
+    return view('welcome');
 });
+
+Route::get('/dashboard', function () {
+    return view('dashboard');
+})->middleware(['auth', 'verified'])->name('dashboard');
+
+Route::middleware('auth')->group(function () {
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+});
+
+require __DIR__.'/auth.php';

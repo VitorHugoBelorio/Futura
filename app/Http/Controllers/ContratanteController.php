@@ -21,6 +21,10 @@ class ContratanteController extends Controller
 
     public function create()
     {
+        if (!auth()->user()->isRoot()) {
+            abort(403, 'Acesso não autorizado.');
+        }
+
         return view('contratantes.create');
     }
 
