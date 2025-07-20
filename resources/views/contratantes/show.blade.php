@@ -27,8 +27,6 @@
         </form>
     </div>
 
-
-
     <ul class="list-group mb-3">
         <li class="list-group-item"><strong>Nome:</strong> {{ $contratante->nome }}</li>
         <li class="list-group-item"><strong>CNPJ:</strong> {{ $contratante->cnpj }}</li>
@@ -39,9 +37,9 @@
 
     {{-- Botões de ação --}}
     <div class="mb-4 d-flex gap-2">
-        <a href="{{ route('fornecedores.create') }}" class="btn btn-primary">Novo Fornecedor</a>
-        <a href="{{ route('receitas.create') }}" class="btn btn-success">Lançar Receita</a>
-        <a href="{{ route('despesas.create') }}" class="btn btn-danger">Lançar Despesa</a>
+        <a href="{{ route('fornecedores.create')}}" class="btn btn-primary">Novo Fornecedor</a>
+        <a href="{{ route('receitas.create')}}" class="btn btn-success">Lançar Receita</a>
+        <a href="{{ route('despesas.create')}}" class="btn btn-danger">Lançar Despesa</a>
     </div>
 
     {{-- Fornecedores --}}
@@ -84,13 +82,12 @@
         <p>Nenhuma receita cadastrada.</p>
     @endif
 
-
     {{-- Despesas --}}
     <h3>Despesas</h3>
     @if($despesas->count())
         <ul class="list-group mb-3">
             @foreach($despesas as $despesa)
-                <li class="list-group-item" style="background-color: #fdeaea;"> {{-- <- ALTERADO aqui --}}
+                <li class="list-group-item" style="background-color: #fdeaea;">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
                             {{ $despesa->descricao }} - R$ {{ number_format($despesa->valor, 2, ',', '.') }}
@@ -113,7 +110,6 @@
     @else
         <p>Nenhuma despesa cadastrada.</p>
     @endif
-
 
     <a href="{{ route('contratantes.index') }}" class="btn btn-secondary">Voltar</a>
 </div>
