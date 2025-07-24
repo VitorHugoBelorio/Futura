@@ -58,7 +58,7 @@ class ContratanteController extends Controller
             '--force' => true,
         ]);
 
-        return redirect()->route('contratantes.index')
+        return redirect()->route('gerentes.dashboard')
                          ->with('success', 'Contratante criado com sucesso e banco provisionado!');
     }
 
@@ -124,8 +124,14 @@ class ContratanteController extends Controller
 
         $contratante->update($request->all());
 
-        return redirect()->route('contratantes.index')
-                         ->with('success', 'Contratante atualizado com sucesso!');
+        // Redireciona para o dashboard do usuário logado
+        if (auth()->user()->isGerente()) {
+            return redirect()->route('gerentes.dashboard')
+                ->with('success', 'Contratante atualizado com sucesso!');
+        } else {
+            return redirect()->route('funcionarios.dashboard')
+                ->with('success', 'Contratante atualizado com sucesso!');
+        }
     }
 
     public function destroy(Contratante $contratante)
@@ -140,10 +146,10 @@ class ContratanteController extends Controller
             // Executa a exclusão do banco de dados (após remover o registro)
             DB::statement("DROP DATABASE IF EXISTS `$nomeBanco`");
 
-            return redirect()->route('contratantes.index')
+            return redirect()->route('gerentes.dashboard')
                             ->with('success', 'Contratante e banco de dados removidos com sucesso!');
         } catch (\Exception $e) {
-            return redirect()->route('contratantes.index')
+            return redirect()->route('gerentes.dashboard')
                             ->with('error', 'Erro ao excluir contratante: ' . $e->getMessage());
         }
     }

@@ -2,6 +2,11 @@
 
 @section('content')
 <div class="container">
+    <h1>Bem-vindo ao Dashboard do Gerente!</h1>
+</div>
+
+
+<div class="container">
     <h1>Contratantes</h1>
 
     @if(session('success'))
@@ -9,6 +14,7 @@
     @endif
 
     <a href="{{ route('contratantes.create') }}" class="btn btn-primary mb-3">Novo Contratante</a>
+    <a href="{{ route('funcionarios.index') }}" class="btn btn-secondary mb-3">Gerenciar Funcionários</a>
 
     <table class="table table-bordered">
         <thead>

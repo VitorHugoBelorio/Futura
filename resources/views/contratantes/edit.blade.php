@@ -29,7 +29,7 @@
         </div>
 
         <button type="submit" class="btn btn-primary">Salvar</button>
-        <a href="{{ route('contratantes.index') }}" class="btn btn-secondary">Cancelar</a>
+        <a href="{{ auth()->user()->isGerente() ? route('gerentes.dashboard') : route('funcionarios.dashboard') }}" class="btn btn-secondary">Voltar</a>
     </form>
 </div>
 @endsection

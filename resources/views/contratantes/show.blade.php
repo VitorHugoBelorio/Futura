@@ -111,6 +111,6 @@
         <p>Nenhuma despesa cadastrada.</p>
     @endif
 
-    <a href="{{ route('contratantes.index') }}" class="btn btn-secondary">Voltar</a>
+    <a href="{{ auth()->user()->isGerente() ? route('gerentes.dashboard') : route('funcionarios.dashboard') }}" class="btn btn-secondary">Voltar</a>
 </div>
 @endsection
