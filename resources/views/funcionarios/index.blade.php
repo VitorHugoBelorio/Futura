@@ -5,7 +5,10 @@
 <div class="container">
     <h1>Funcionários</h1>
 
-    <a href="{{ route('funcionarios.create') }}" class="btn btn-primary mb-3">Novo Funcionário</a>
+    <div class="mb-3 d-flex justify-content-between">
+        <a href="{{ route('gerentes.dashboard') }}" class="btn btn-secondary">Voltar</a>
+        <a href="{{ route('funcionarios.create') }}" class="btn btn-primary">Novo Funcionário</a>
+    </div>
 
     <table class="table table-bordered">
         <thead>

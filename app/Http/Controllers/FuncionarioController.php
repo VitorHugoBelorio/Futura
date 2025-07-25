@@ -46,6 +46,36 @@ class FuncionarioController extends Controller
         }
         abort(403);
     }
+
+    public function edit($id)
+    {
+        $funcionario = User::where('perfil', 'funcionario')->findOrFail($id);
+        return view('funcionarios.edit', compact('funcionario'));
+    }
+
+    public function update(Request $request, $id)
+    {
+        $funcionario = User::where('perfil', 'funcionario')->findOrFail($id);
+
+        $request->validate([
+            'nome' => 'required',
+            'email' => 'required|email|unique:users,email,' . $funcionario->id,
+            'senha' => 'nullable|min:6',
+        ]);
+
+        $funcionario->nome = $request->nome;
+        $funcionario->email = $request->email;
+
+        if ($request->filled('senha')) {
+            $funcionario->password = Hash::make($request->senha);
+        }
+
+        $funcionario->save();
+
+    return redirect()->route('funcionarios.index')->with('success', 'Funcionário atualizado com sucesso.');
+}
+
+
     public function dashboard()
     {
         $contratantes = Contratante::all(); 

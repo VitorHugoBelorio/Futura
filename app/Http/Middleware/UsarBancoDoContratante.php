@@ -24,14 +24,17 @@ class UsarBancoDoContratante
             abort(403, 'Contratante inválido.');
         }
 
-        // Define dinamicamente o banco para tenant_temp
+        // Garante nova conexão para evitar cache de conexões anteriores
+        DB::purge('tenant_temp');
+
         Config::set('database.connections.tenant_temp.database', $contratante->banco_dados);
 
-        // Testa a conexão (opcional, mas ajuda a evitar erro 500)
         try {
-            DB::connection('tenant_temp')->getPdo();
+            DB::reconnect('tenant_temp');
+            DB::connection('tenant_temp')->getPdo(); // força verificação
         } catch (\Exception $e) {
-            abort(500, 'Não foi possível conectar ao banco do contratante.');
+            report($e);
+            abort(500, 'Erro ao conectar com o banco do contratante.');
         }
 
         return $next($request);

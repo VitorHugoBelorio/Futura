@@ -11,7 +11,6 @@ use App\Http\Controllers\FuncionarioController;
 use App\Http\Controllers\GerenteController;
 use App\Http\Controllers\AuthController;
 
-
 // Página de login
 Route::get('/login', [AuthController::class, 'index'])->name('login');
 Route::post('/login', [AuthController::class, 'loginAttempt'])->name('login.attempt');
@@ -28,15 +27,21 @@ Route::post('/selecionar-contratante', [ContratoAtivoController::class, 'definir
 // Contratantes (sem tenant middleware)
 Route::resource('contratantes', ContratanteController::class);
 
-// Rotas autenticadas e com banco dinâmico
+// Rotas autenticadas sem banco tenant
+Route::middleware('auth')->group(function () {
+    Route::get('/gerente/funcionarios', [GerenteController::class, 'funcionarios'])->name('funcionarios.index');
+});
+
+// Rotas autenticadas COM banco tenant
 Route::middleware(['auth', UsarBancoDoContratante::class])->group(function () {
     Route::resource('fornecedores', FornecedorController::class)->except(['index', 'show']);
     Route::resource('receitas', ReceitaController::class);
     Route::resource('despesas', DespesaController::class);
-    Route::get('/gerente/funcionarios', [GerenteController::class, 'funcionarios'])
-        ->name('funcionarios.index')
-        ->middleware('auth');
 });
 
 
-
+Route::middleware(['auth', 'gerente'])->prefix('gerente')->group(function () {
+    Route::resource('funcionarios', FuncionarioController::class)->only([
+        'index', 'create', 'store', 'edit', 'update', 'destroy'
+    ]);
+});
