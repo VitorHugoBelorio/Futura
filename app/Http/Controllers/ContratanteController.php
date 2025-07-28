@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Contratante;
+use App\Models\User;
 use App\Models\Despesa;
 use App\Models\Fornecedor;
 use App\Models\Receita;
@@ -10,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Hash;
 
 class ContratanteController extends Controller
 {
@@ -21,11 +23,6 @@ class ContratanteController extends Controller
 
     public function create()
     {
-        /*
-        if (!auth()->user()->isRoot()) {
-            abort(403, 'Acesso não autorizado.');
-        }
-        */
         return view('contratantes.create');
     }
 
@@ -36,6 +33,7 @@ class ContratanteController extends Controller
             'cnpj' => 'required|string|max:18|unique:contratantes',
             'email' => 'required|email|unique:contratantes',
             'telefone' => 'nullable|string|max:20',
+            'senha' => 'required|string|min:6',
         ]);
 
         $nomeBanco = 'empresa_' . strtolower(preg_replace('/\s+/', '_', $request->nome));
@@ -57,6 +55,14 @@ class ContratanteController extends Controller
             '--database' => 'tenant_temp',
             '--force' => true,
         ]);
+
+        User::create([
+            'nome' => $request->nome,
+            'email' => $request->email,
+            'password' => Hash::make($request->senha),
+            'perfil' => 'contratante',
+        ]);
+
 
         return redirect()->route('gerentes.dashboard')
                          ->with('success', 'Contratante criado com sucesso e banco provisionado!');

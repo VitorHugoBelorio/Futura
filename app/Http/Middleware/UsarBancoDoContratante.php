@@ -13,7 +13,7 @@ class UsarBancoDoContratante
     public function handle(Request $request, Closure $next)
     {
         $contratanteId = session('contratante_id');
-
+        
         if (!$contratanteId) {
             return redirect()->route('selecionar.contratante')->with('error', 'Selecione um contratante.');
         }

@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\FuncionarioController;
 use App\Http\Controllers\GerenteController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\DashboardContratanteController;
 
 // Página de login
 Route::get('/login', [AuthController::class, 'index'])->name('login');
@@ -44,4 +45,8 @@ Route::middleware(['auth', 'gerente'])->prefix('gerente')->group(function () {
     Route::resource('funcionarios', FuncionarioController::class)->only([
         'index', 'create', 'store', 'edit', 'update', 'destroy'
     ]);
+});
+
+Route::middleware(['auth', UsarBancoDoContratante::class])->group(function () {
+    Route::get('/dashboard', [DashboardContratanteController::class, 'index'])->name('contratante.dashboard');
 });

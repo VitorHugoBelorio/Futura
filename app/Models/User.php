@@ -27,4 +27,10 @@ class User extends Authenticatable
     {
         return $this->perfil === 'gerente';
     }
+
+    public function contratante()
+    {
+        return $this->hasOne(Contratante::class, 'email', 'email'); // baseando-se no e-mail, se for igual
+    }
+
 }

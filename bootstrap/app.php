@@ -14,6 +14,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'auth' => \App\Http\Middleware\Authenticate::class,
             'gerente' => \App\Http\Middleware\IsGerente::class,
+            'funcionario' => \App\Http\Middleware\IsFuncionario::class,
             'tenant' => \App\Http\Middleware\UsarBancoDoContratante::class,
         ]);
     })

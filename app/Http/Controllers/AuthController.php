@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Models\Contratante;
 
 class AuthController extends Controller
 {
@@ -20,15 +22,33 @@ class AuthController extends Controller
         ]);
 
         if (Auth::attempt($credentials)) {
-            $request->session()->regenerate();
+            $request->session()->regenerate(); 
 
-            if (Auth::user()->isGerente()) {
-                return redirect()->route('gerentes.dashboard');
-            } else {
-                return redirect()->route('funcionarios.dashboard');
+            $user = Auth::user(); 
+
+            if ($user->perfil === 'contratante') {
+                // Encontra o contratante com o mesmo email do user logado
+                $contratante = Contratante::where('email', $user->email)->first();
+
+                if ($contratante) {
+                    session(['contratante_id' => $contratante->id]);
+                    return redirect()->route('contratante.dashboard');
+                } else {
+                    Auth::logout();
+                    return redirect()->route('login')->withErrors([
+                        'email' => 'Contratante não encontrado.',
+                    ]);
+                }
             }
+
+            if ($user->perfil === 'gerente') {
+                return redirect()->route('gerentes.dashboard');
+            } elseif ($user->perfil === 'funcionario') {
+                return redirect()->route('funcionarios.dashboard');
+            } 
         }
 
+        // Falha na autenticação
         return back()->withInput()->withErrors([
             'error' => 'Login inválido.',
         ]);
