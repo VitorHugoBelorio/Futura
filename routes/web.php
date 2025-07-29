@@ -45,6 +45,9 @@ Route::middleware(['auth', 'gerente'])->prefix('gerente')->group(function () {
     Route::resource('funcionarios', FuncionarioController::class)->only([
         'index', 'create', 'store', 'edit', 'update', 'destroy'
     ]);
+    Route::resource('gerentes', GerenteController::class)->only([
+    'index', 'create', 'store', 'edit', 'update', 'destroy'
+    ]);
 });
 
 Route::middleware(['auth', UsarBancoDoContratante::class])->group(function () {

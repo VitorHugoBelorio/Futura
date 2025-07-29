@@ -113,7 +113,6 @@ class ContratanteController extends Controller
     }
 
 
-
     public function edit(Contratante $contratante)
     {
         return view('contratantes.edit', compact('contratante'));
@@ -139,6 +138,7 @@ class ContratanteController extends Controller
                 ->with('success', 'Contratante atualizado com sucesso!');
         }
     }
+
 
     public function destroy(Contratante $contratante)
     {

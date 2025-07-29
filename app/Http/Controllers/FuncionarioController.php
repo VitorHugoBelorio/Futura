@@ -73,7 +73,7 @@ class FuncionarioController extends Controller
         $funcionario->save();
 
     return redirect()->route('funcionarios.index')->with('success', 'Funcionário atualizado com sucesso.');
-}
+    }
 
 
     public function dashboard()

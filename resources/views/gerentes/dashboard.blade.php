@@ -15,6 +15,7 @@
 
     <a href="{{ route('contratantes.create') }}" class="btn btn-primary mb-3">Novo Contratante</a>
     <a href="{{ route('funcionarios.index') }}" class="btn btn-secondary mb-3">Gerenciar Funcionários</a>
+    <a href="{{ route('gerentes.index') }}" class="btn btn-success mb-3">Gerenciar Gerentes</a>
 
     <table class="table table-bordered">
         <thead>

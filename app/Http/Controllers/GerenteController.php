@@ -48,6 +48,34 @@ class GerenteController extends Controller
         abort(403);
     }
 
+        public function edit($id)
+    {
+        $gerente = User::where('perfil', 'gerente')->findOrFail($id);
+        return view('gerentes.edit', compact('gerente'));
+    }
+
+    public function update(Request $request, $id)
+    {
+        $gerente = User::where('perfil', 'gerente')->findOrFail($id);
+
+        $request->validate([
+            'nome' => 'required',
+            'email' => 'required|email|unique:users,email,' . $gerente->id,
+            'senha' => 'nullable|min:6',
+        ]);
+
+        $gerente->nome = $request->nome;
+        $gerente->email = $request->email;
+
+        if ($request->filled('senha')) {
+            $gerente->password = Hash::make($request->senha);
+        }
+
+        $gerente->save();
+
+    return redirect()->route('gerentes.index')->with('success', 'Gerente atualizado com sucesso.');
+    }
+
     public function dashboard()
     {
         $contratantes = Contratante::all(); 
@@ -58,5 +86,11 @@ class GerenteController extends Controller
     {
         $funcionarios = User::where('perfil', 'funcionario')->get();
         return view('funcionarios.index', compact('funcionarios'));
+    }
+
+        public function gerentes()
+    {
+        $gerentes = User::where('perfil', 'gerente')->get();
+        return view('gerentes.index', compact('gerentes'));
     }
 }

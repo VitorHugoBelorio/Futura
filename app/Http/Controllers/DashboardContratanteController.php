@@ -7,6 +7,7 @@ use App\Models\Receita;
 use App\Models\Despesa;
 use App\Models\Contratante;
 use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 class DashboardContratanteController extends Controller
 {
@@ -14,14 +15,14 @@ class DashboardContratanteController extends Controller
     {
         $mes = $request->input('mes', now()->format('m'));
         $ano = $request->input('ano', now()->format('Y'));
+        $diaInicio = $request->input('dia_inicio');
+        $diaFim = $request->input('dia_fim');
 
-        // Pega o ID do contratante da sessão
         $contratanteId = session('contratante_id');
         if (!$contratanteId) {
             return redirect()->route('selecionar-contratante')->with('error', 'Nenhum contratante selecionado.');
         }
 
-        // Busca o contratante e configura o banco
         $contratante = Contratante::find($contratanteId);
         if (!$contratante) {
             return redirect()->route('selecionar-contratante')->with('error', 'Contratante não encontrado.');
@@ -32,16 +33,18 @@ class DashboardContratanteController extends Controller
         try {
             DB::connection('tenant_temp')->getPdo();
 
+            // Define datas completas para filtro
+            $inicio = Carbon::createFromDate($ano, $mes, $diaInicio ?? 1)->startOfDay();
+            $fim = Carbon::createFromDate($ano, $mes, $diaFim ?? now()->endOfMonth()->day)->endOfDay();
+
             $receitas = (new Receita())
                 ->setConnection('tenant_temp')
-                ->whereMonth('data_recebimento', $mes)
-                ->whereYear('data_recebimento', $ano)
+                ->whereBetween('data_recebimento', [$inicio, $fim])
                 ->get();
 
             $despesas = (new Despesa())
                 ->setConnection('tenant_temp')
-                ->whereMonth('data_pagamento', $mes)
-                ->whereYear('data_pagamento', $ano)
+                ->whereBetween('data_pagamento', [$inicio, $fim])
                 ->get();
 
             $totalReceitas = $receitas->sum('valor');
@@ -70,7 +73,9 @@ class DashboardContratanteController extends Controller
                 'saldo',
                 'movimentacoes',
                 'mes',
-                'ano'
+                'ano',
+                'diaInicio',
+                'diaFim'
             ));
         } catch (\Exception $e) {
             return back()->with('error', 'Erro ao conectar com o banco do contratante: ' . $e->getMessage());

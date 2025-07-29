@@ -5,22 +5,31 @@
     <h1>Dashboard do Contratante</h1>
 
     <form method="GET" class="row g-2 mb-4">
-        <div class="col-md-3">
+        <div class="col-md-2">
+            <label>Dia Inicial</label>
+            <input type="number" name="dia_inicio" value="{{ request('dia_inicio') }}" min="1" max="31" class="form-control">
+        </div>
+        <div class="col-md-2">
+            <label>Dia Final</label>
+            <input type="number" name="dia_fim" value="{{ request('dia_fim') }}" min="1" max="31" class="form-control">
+        </div>
+        <div class="col-md-2">
             <label>Mês</label>
             <select name="mes" class="form-control">
                 @foreach(range(1,12) as $m)
-                    <option value="{{ $m }}" {{ $m == $mes ? 'selected' : '' }}>
+                    <option value="{{ $m }}" {{ $m == request('mes', $mes) ? 'selected' : '' }}>
                         {{ str_pad($m, 2, '0', STR_PAD_LEFT) }}
                     </option>
                 @endforeach
             </select>
         </div>
-        <div class="col-md-3">
+        <div class="col-md-2">
             <label>Ano</label>
-            <input type="number" name="ano" value="{{ $ano }}" class="form-control">
+            <input type="number" name="ano" value="{{ request('ano', $ano) }}" class="form-control">
         </div>
-        <div class="col-md-3 align-self-end">
-            <button class="btn btn-primary">Filtrar</button>
+        <div class="col-md-2 align-self-end d-flex gap-2">
+            <button class="btn btn-primary w-100">Filtrar</button>
+            <a href="{{ route('contratante.dashboard') }}" class="btn btn-secondary w-100">Resetar</a>
         </div>
     </form>
 
