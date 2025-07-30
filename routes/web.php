@@ -53,3 +53,7 @@ Route::middleware(['auth', 'gerente'])->prefix('gerente')->group(function () {
 Route::middleware(['auth', UsarBancoDoContratante::class])->group(function () {
     Route::get('/dashboard', [DashboardContratanteController::class, 'index'])->name('contratante.dashboard');
 });
+
+// Rota para gerar relatório do mês referente ao contratante.
+Route::get('/contratante/relatorio/pdf', [DashboardContratanteController::class, 'gerarRelatorioPdf'])
+    ->name('contratante.relatorio.pdf');

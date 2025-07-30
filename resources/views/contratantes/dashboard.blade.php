@@ -4,6 +4,11 @@
 <div class="container">
     <h1>Dashboard do Contratante</h1>
 
+    <a href="{{ route('contratante.relatorio.pdf', request()->all()) }}" class="btn btn-outline-dark mb-3">
+        Baixar Relatório PDF
+    </a>
+
+
     <form method="GET" class="row g-2 mb-4">
         <div class="col-md-2">
             <label>Dia Inicial</label>
