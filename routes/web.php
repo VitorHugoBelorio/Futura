@@ -11,6 +11,7 @@ use App\Http\Controllers\FuncionarioController;
 use App\Http\Controllers\GerenteController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardContratanteController;
+use App\Http\Controllers\ResetPasswordController;
 
 // Página de login
 Route::get('/login', [AuthController::class, 'index'])->name('login');
@@ -57,3 +58,10 @@ Route::middleware(['auth', UsarBancoDoContratante::class])->group(function () {
 // Rota para gerar relatório do mês referente ao contratante.
 Route::get('/contratante/relatorio/pdf', [DashboardContratanteController::class, 'gerarRelatorioPdf'])
     ->name('contratante.relatorio.pdf');
+
+// Recuperar senha.
+Route::get('forgot-password', [ResetPasswordController::class, 'showForgotForm'])->name('password.request');
+Route::post('forgot-password', [ResetPasswordController::class, 'sendResetLink'])->name('password.email');
+
+Route::get('reset-password/{token}', [ResetPasswordController::class, 'showResetForm'])->name('password.reset');
+Route::post('reset-password', [ResetPasswordController::class, 'resetPassword'])->name('password.update');
