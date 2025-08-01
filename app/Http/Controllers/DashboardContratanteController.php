@@ -14,10 +14,8 @@ class DashboardContratanteController extends Controller
 {
     public function index(Request $request)
     {
-        $mes = $request->input('mes', now()->format('m'));
-        $ano = $request->input('ano', now()->format('Y'));
-        $diaInicio = $request->input('dia_inicio');
-        $diaFim = $request->input('dia_fim');
+        $dataInicio = $request->input('data_inicio') ?? Carbon::now()->startOfMonth()->toDateString();
+        $dataFim = $request->input('data_fim') ?? Carbon::now()->endOfMonth()->toDateString();
 
         $contratanteId = session('contratante_id');
         if (!$contratanteId) {
@@ -34,18 +32,14 @@ class DashboardContratanteController extends Controller
         try {
             DB::connection('tenant_temp')->getPdo();
 
-            // Define datas completas para filtro
-            $inicio = Carbon::createFromDate($ano, $mes, $diaInicio ?? 1)->startOfDay();
-            $fim = Carbon::createFromDate($ano, $mes, $diaFim ?? now()->endOfMonth()->day)->endOfDay();
-
             $receitas = (new Receita())
                 ->setConnection('tenant_temp')
-                ->whereBetween('data_recebimento', [$inicio, $fim])
+                ->whereBetween('data_recebimento', [$dataInicio, $dataFim])
                 ->get();
 
             $despesas = (new Despesa())
                 ->setConnection('tenant_temp')
-                ->whereBetween('data_pagamento', [$inicio, $fim])
+                ->whereBetween('data_pagamento', [$dataInicio, $dataFim])
                 ->get();
 
             $totalReceitas = $receitas->sum('valor');
@@ -73,15 +67,14 @@ class DashboardContratanteController extends Controller
                 'totalDespesas',
                 'saldo',
                 'movimentacoes',
-                'mes',
-                'ano',
-                'diaInicio',
-                'diaFim'
+                'dataInicio',
+                'dataFim'
             ));
         } catch (\Exception $e) {
             return back()->with('error', 'Erro ao conectar com o banco do contratante: ' . $e->getMessage());
         }
     }
+
 
 
     public function gerarRelatorioPdf(Request $request)

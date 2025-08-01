@@ -41,7 +41,7 @@ class ContratanteController extends Controller
             'cnpj' => $request->cnpj,
             'email' => $request->email,
             'telefone' => $request->telefone,
-            'banco_dados' => '', // será atualizado depois
+            'banco_dados' => '', // será atualizado depois com o id
         ]);
 
         $nomeBanco = (string) $contratante->id;
