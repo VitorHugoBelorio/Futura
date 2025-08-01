@@ -36,17 +36,19 @@ class ContratanteController extends Controller
             'senha' => 'required|string|min:6',
         ]);
 
-        $nomeBanco = 'empresa_' . strtolower(preg_replace('/\s+/', '_', $request->nome));
-
-        DB::statement("CREATE DATABASE `$nomeBanco`");
-
         $contratante = Contratante::create([
             'nome' => $request->nome,
             'cnpj' => $request->cnpj,
             'email' => $request->email,
             'telefone' => $request->telefone,
-            'banco_dados' => $nomeBanco,
+            'banco_dados' => '', // será atualizado depois
         ]);
+
+        $nomeBanco = (string) $contratante->id;
+
+        DB::statement("CREATE DATABASE `$nomeBanco`");
+
+        $contratante->update(['banco_dados' => $nomeBanco]);
 
         config(['database.connections.tenant_temp.database' => $nomeBanco]);
 
@@ -63,10 +65,10 @@ class ContratanteController extends Controller
             'perfil' => 'contratante',
         ]);
 
-
         return redirect()->route('gerentes.dashboard')
-                         ->with('success', 'Contratante criado com sucesso e banco provisionado!');
+                        ->with('success', 'Contratante criado com sucesso e banco provisionado!');
     }
+
 
     public function show(Contratante $contratante, Request $request)
     {
@@ -145,6 +147,10 @@ class ContratanteController extends Controller
         try {
             // Armazena o nome do banco antes de deletar o contratante
             $nomeBanco = $contratante->banco_dados;
+
+            // Opcional: exclui o usuário relacionado ao contratante da tabela `users` do banco principal
+            // Aqui estou assumindo que o contratante tem um e-mail igual ao do usuário
+            DB::table('users')->where('email', $contratante->email)->delete();
 
             // Remove o contratante da tabela principal
             $contratante->delete();

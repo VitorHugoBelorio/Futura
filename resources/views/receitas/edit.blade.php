@@ -40,7 +40,7 @@
         </div>
 
         <button type="submit" class="btn btn-primary">Atualizar Receita</button>
-        <a href="{{ route('receitas.index') }}" class="btn btn-secondary">Cancelar</a>
+        <a href="{{ route('contratantes.show', session('contratante_id')) }}" class="btn btn-secondary">Cancelar</a>
     </form>
 </div>
 @endsection
