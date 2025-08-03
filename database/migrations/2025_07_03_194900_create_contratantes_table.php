@@ -16,6 +16,7 @@ class CreateContratantesTable extends Migration
             $table->string('email')->unique();
             $table->string('banco_dados');      // ← nome do banco tenant
             $table->timestamps();
+            $table->unsignedBigInteger('user_id')->nullable();
         });
     }
 

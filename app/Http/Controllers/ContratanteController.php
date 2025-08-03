@@ -31,43 +31,43 @@ class ContratanteController extends Controller
         $request->validate([
             'nome' => 'required|string|max:255',
             'cnpj' => 'required|string|max:18|unique:contratantes',
-            'email' => 'required|email|unique:contratantes',
+            'email' => 'required|email|unique:users,email|unique:contratantes,email',
             'telefone' => 'nullable|string|max:20',
             'senha' => 'required|string|min:6',
         ]);
 
+        $user = User::create([
+            'nome'     => $request->nome,
+            'email'    => $request->email,
+            'password' => Hash::make($request->senha),
+            'perfil'   => 'contratante',
+        ]);
+
         $contratante = Contratante::create([
-            'nome' => $request->nome,
-            'cnpj' => $request->cnpj,
-            'email' => $request->email,
-            'telefone' => $request->telefone,
+            'nome'        => $request->nome,
+            'cnpj'        => $request->cnpj,
+            'email'       => $request->email,
+            'telefone'    => $request->telefone,
+            'user_id'     => $user->id,
             'banco_dados' => '', // será atualizado depois com o id
         ]);
 
         $nomeBanco = (string) $contratante->id;
-
         DB::statement("CREATE DATABASE `$nomeBanco`");
 
         $contratante->update(['banco_dados' => $nomeBanco]);
 
         config(['database.connections.tenant_temp.database' => $nomeBanco]);
-
         Artisan::call('migrate', [
             '--path' => 'database/migrations/tenant',
             '--database' => 'tenant_temp',
             '--force' => true,
         ]);
 
-        User::create([
-            'nome' => $request->nome,
-            'email' => $request->email,
-            'password' => Hash::make($request->senha),
-            'perfil' => 'contratante',
-        ]);
-
         return redirect()->route('gerentes.dashboard')
                         ->with('success', 'Contratante criado com sucesso e banco provisionado!');
     }
+
 
 
     public function show(Contratante $contratante, Request $request)
@@ -123,23 +123,43 @@ class ContratanteController extends Controller
     public function update(Request $request, Contratante $contratante)
     {
         $request->validate([
-            'nome' => 'required|string|max:255',
-            'cnpj' => 'required|string|max:18|unique:contratantes,cnpj,' . $contratante->id,
-            'email' => 'required|email|unique:contratantes,email,' . $contratante->id,
+            'nome'     => 'required|string|max:255',
+            'cnpj'     => 'required|string|max:18|unique:contratantes,cnpj,' . $contratante->id,
+            'email'    => 'required|email|unique:contratantes,email,' . $contratante->id,
             'telefone' => 'nullable|string|max:20',
+            'password' => 'nullable|string|min:6',
         ]);
 
-        $contratante->update($request->all());
+        // Atualiza o contratante
+        $contratante->update([
+            'nome'     => $request->nome,
+            'cnpj'     => $request->cnpj,
+            'email'    => $request->email,
+            'telefone' => $request->telefone,
+        ]);
 
-        // Redireciona para o dashboard do usuário logado
-        if (auth()->user()->isGerente()) {
-            return redirect()->route('gerentes.dashboard')
-                ->with('success', 'Contratante atualizado com sucesso!');
-        } else {
-            return redirect()->route('funcionarios.dashboard')
-                ->with('success', 'Contratante atualizado com sucesso!');
+        // Atualiza o usuário diretamente pelo relacionamento user_id
+        if ($contratante->user_id) {
+            $user = User::find($contratante->user_id);
+
+            if ($user) {
+                $user->nome  = $request->nome;
+                $user->email = $request->email;
+
+                if ($request->filled('password')) {
+                    $user->password = bcrypt($request->password);
+                }
+
+                $user->save();
+            }
         }
+
+        $rota = auth()->user()->isGerente() ? 'gerentes.dashboard' : 'funcionarios.dashboard';
+
+        return redirect()->route($rota)
+            ->with('success', 'Contratante atualizado com sucesso!');
     }
+
 
 
     public function destroy(Contratante $contratante)
