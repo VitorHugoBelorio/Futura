@@ -77,5 +77,66 @@
             @endforeach
         </tbody>
     </table>
+
+
+    <div class="card mt-4">
+    <div class="card-body">
+        <h5 class="card-title">Evolução mensal</h5>
+        <canvas id="graficoEvolucao" height="100"></canvas>
+    </div>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const ctx = document.getElementById('graficoEvolucao').getContext('2d');
+
+    const graficoEvolucao = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: @json($graficoDados['labels']),
+            datasets: [
+                {
+                    label: 'Receitas',
+                    data: @json($graficoDados['receitas']),
+                    borderColor: 'green',
+                    backgroundColor: 'rgba(0, 128, 0, 0.1)',
+                    fill: true,
+                    tension: 0.3
+                },
+                {
+                    label: 'Despesas',
+                    data: @json($graficoDados['despesas']),
+                    borderColor: 'red',
+                    backgroundColor: 'rgba(255, 0, 0, 0.1)',
+                    fill: true,
+                    tension: 0.3
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: value => 'R$ ' + value.toLocaleString('pt-BR')
+                    }
+                }
+            },
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        label: (context) => {
+                            let label = context.dataset.label || '';
+                            if (label) label += ': ';
+                            label += 'R$ ' + context.raw.toLocaleString('pt-BR');
+                            return label;
+                        }
+                    }
+                }
+            }
+        }
+    });
+</script>
+
 @endsection

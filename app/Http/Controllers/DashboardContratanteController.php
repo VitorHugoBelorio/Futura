@@ -62,13 +62,40 @@ class DashboardContratanteController extends Controller
                 ];
             }))->sortByDesc('data');
 
+            // Dados para o gráfico por mês (simples, pode ser refinado depois)
+            $graficoDados = [
+                'labels' => [],
+                'receitas' => [],
+                'despesas' => [],
+            ];
+
+            $periodo = Carbon::parse($dataInicio)->startOfMonth()->monthsUntil(Carbon::parse($dataFim)->endOfMonth());
+
+            foreach ($periodo as $mes) {
+                $mesInicio = $mes->copy()->startOfMonth();
+                $mesFim = $mes->copy()->endOfMonth();
+
+                $receitaMes = (new Receita())->setConnection('tenant_temp')
+                    ->whereBetween('data_recebimento', [$mesInicio, $mesFim])
+                    ->sum('valor');
+
+                $despesaMes = (new Despesa())->setConnection('tenant_temp')
+                    ->whereBetween('data_pagamento', [$mesInicio, $mesFim])
+                    ->sum('valor');
+
+                $graficoDados['labels'][] = $mes->format('M/Y');
+                $graficoDados['receitas'][] = $receitaMes;
+                $graficoDados['despesas'][] = $despesaMes;
+            }
+
             return view('contratantes.dashboard', compact(
                 'totalReceitas',
                 'totalDespesas',
                 'saldo',
                 'movimentacoes',
                 'dataInicio',
-                'dataFim'
+                'dataFim',
+                'graficoDados'
             ));
         } catch (\Exception $e) {
             return back()->with('error', 'Erro ao conectar com o banco do contratante: ' . $e->getMessage());

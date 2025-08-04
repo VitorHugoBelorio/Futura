@@ -4,9 +4,6 @@
 <div class="container">
     <h2>Editar Funcionário</h2>
 
-    @if(session('success'))
-        <div class="alert alert-success">{{ session('success') }}</div>
-    @endif
 
     <form action="{{ route('gerentes.update', $gerente->id) }}" method="POST">
         @csrf

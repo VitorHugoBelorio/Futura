@@ -10,8 +10,12 @@
     <h1>Contratantes</h1>
 
     @if(session('success'))
-        <div class="alert alert-success">{{ session('success') }}</div>
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            {{ session('success') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
+        </div>
     @endif
+
 
     <a href="{{ route('contratantes.create') }}" class="btn btn-primary mb-3">Novo Contratante</a>
     <a href="{{ route('funcionarios.index') }}" class="btn btn-secondary mb-3">Gerenciar Funcionários</a>

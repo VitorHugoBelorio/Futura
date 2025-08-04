@@ -33,7 +33,7 @@
         <li class="list-group-item"><strong>CNPJ:</strong> {{ $contratante->cnpj }}</li>
         <li class="list-group-item"><strong>E-mail:</strong> {{ $contratante->email }}</li>
         <li class="list-group-item"><strong>Telefone:</strong> {{ $contratante->telefone }}</li>
-        <li class="list-group-item"><strong>Banco:</strong> {{ $contratante->banco_dados }}</li>
+        <!--<li class="list-group-item"><strong>Banco:</strong> {{ $contratante->banco_dados }}</li> --> <!-- Retirar na versão final, está presente apenas para fins de testes e comparação.-->
     </ul>
 
     {{-- Ações --}}

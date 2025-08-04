@@ -13,6 +13,12 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardContratanteController;
 use App\Http\Controllers\ResetPasswordController;
 
+
+Route::get('/', function () {
+    return view('welcome');
+});
+
+
 // Página de login
 Route::get('/login', [AuthController::class, 'index'])->name('login');
 Route::post('/login', [AuthController::class, 'loginAttempt'])->name('login.attempt');
