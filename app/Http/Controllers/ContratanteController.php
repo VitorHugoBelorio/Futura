@@ -28,9 +28,14 @@ class ContratanteController extends Controller
 
     public function store(Request $request)
     {
+        // Remove máscara do CNPJ e normaliza
+        $request->merge([
+            'cnpj' => preg_replace('/\D/', '', $request->cnpj)
+        ]);
+
         $request->validate([
             'nome' => 'required|string|max:255',
-            'cnpj' => 'required|string|max:18|unique:contratantes',
+            'cnpj' => 'required|string|max:18|unique:contratantes,cnpj',
             'email' => 'required|email|unique:users,email|unique:contratantes,email',
             'telefone' => 'nullable|string|max:20',
             'senha' => 'required|string|min:6',
@@ -122,6 +127,11 @@ class ContratanteController extends Controller
 
     public function update(Request $request, Contratante $contratante)
     {
+        // Remove máscara do CNPJ e normaliza
+        $request->merge([
+            'cnpj' => preg_replace('/\D/', '', $request->cnpj)
+        ]);
+
         $request->validate([
             'nome'     => 'required|string|max:255',
             'cnpj'     => 'required|string|max:18|unique:contratantes,cnpj,' . $contratante->id,

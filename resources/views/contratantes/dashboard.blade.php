@@ -9,20 +9,33 @@
     </a>
 
 
-    <form method="GET" class="row g-2 mb-4">
-        <div class="col-md-3">
-            <label>Data Início</label>
-            <input type="date" name="data_inicio" value="{{ request('data_inicio', $dataInicio) }}" class="form-control">
-        </div>
-        <div class="col-md-3">
-            <label>Data Fim</label>
-            <input type="date" name="data_fim" value="{{ request('data_fim', $dataFim) }}" class="form-control">
-        </div>
-        <div class="col-md-3 align-self-end d-flex gap-2">
-            <button class="btn btn-primary w-100">Filtrar</button>
-            <a href="{{ route('contratante.dashboard') }}" class="btn btn-secondary w-100">Resetar</a>
+    <form method="GET" action="{{ route('contratante.dashboard') }}" id="filtro-form">
+        <div class="row">
+            <div class="col-md-3">
+                <label for="periodo">Período:</label>
+                <select name="periodo" id="periodo" class="form-control">
+                    <option value="mensal" {{ request('periodo') === 'mensal' ? 'selected' : '' }}>Mensal</option>
+                    <option value="semestral" {{ request('periodo') === 'semestral' ? 'selected' : '' }}>Semestral</option>
+                    <option value="anual" {{ request('periodo') === 'anual' ? 'selected' : '' }}>Anual</option>
+                </select>
+            </div>
+
+            <div class="col-md-3">
+                <label for="data_inicio">Data Início:</label>
+                <input type="date" name="data_inicio" id="data_inicio" class="form-control" value="{{ $dataInicio }}">
+            </div>
+
+            <div class="col-md-3">
+                <label for="data_fim">Data Fim:</label>
+                <input type="date" name="data_fim" id="data_fim" class="form-control" value="{{ $dataFim }}">
+            </div>
+
+            <div class="col-md-3 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100">Filtrar</button>
+            </div>
         </div>
     </form>
+
 
 
     <div class="row text-center mb-4">
@@ -84,7 +97,7 @@
         <h5 class="card-title">Evolução mensal</h5>
         <canvas id="graficoEvolucao" height="100"></canvas>
     </div>
-</div>
+    </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
@@ -138,5 +151,50 @@
         }
     });
 </script>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const periodoSelect = document.querySelector('select[name="periodo"]');
+            const dataInicioInput = document.querySelector('input[name="data_inicio"]');
+            const dataFimInput = document.querySelector('input[name="data_fim"]');
+
+            periodoSelect.addEventListener('change', function () {
+                const now = new Date();
+                let inicio, fim;
+
+                if (this.value === 'mensal') {
+                    // Primeiro e último dia do mês atual
+                    inicio = new Date(now.getFullYear(), now.getMonth(), 1);
+                    fim = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
+                } else if (this.value === 'semestral') {
+                    const mes = now.getMonth(); // 0 a 11
+                    const ano = now.getFullYear();
+
+                    if (mes < 6) {
+                        // Primeiro semestre
+                        inicio = new Date(ano, 0, 1);
+                        fim = new Date(ano, 5, 30);
+                    } else {
+                        // Segundo semestre
+                        inicio = new Date(ano, 6, 1);
+                        fim = new Date(ano, 11, 31);
+                    }
+
+                } else if (this.value === 'anual') {
+                    const ano = now.getFullYear();
+                    inicio = new Date(ano, 0, 1);
+                    fim = new Date(ano, 11, 31);
+                }
+
+                // Preenche os campos de data no formato YYYY-MM-DD
+                const formatDate = (date) => date.toISOString().split('T')[0];
+
+                dataInicioInput.value = formatDate(inicio);
+                dataFimInput.value = formatDate(fim);
+            });
+        });
+    </script>
 
 @endsection

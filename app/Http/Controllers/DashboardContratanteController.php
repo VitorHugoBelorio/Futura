@@ -62,30 +62,82 @@ class DashboardContratanteController extends Controller
                 ];
             }))->sortByDesc('data');
 
-            // Dados para o gráfico por mês (simples, pode ser refinado depois)
+            $tipoComparacao = $request->input('periodo', 'mensal');
+
             $graficoDados = [
                 'labels' => [],
                 'receitas' => [],
                 'despesas' => [],
             ];
 
-            $periodo = Carbon::parse($dataInicio)->startOfMonth()->monthsUntil(Carbon::parse($dataFim)->endOfMonth());
+            $inicio = Carbon::parse($dataInicio);
+            $fim = Carbon::parse($dataFim);
 
-            foreach ($periodo as $mes) {
-                $mesInicio = $mes->copy()->startOfMonth();
-                $mesFim = $mes->copy()->endOfMonth();
+            switch ($tipoComparacao) {
+                case 'anual':
+                    $periodo = $inicio->copy()->startOfYear()->yearsUntil($fim->copy()->endOfYear());
+                    foreach ($periodo as $ano) {
+                        $anoInicio = $ano->copy()->startOfYear();
+                        $anoFim = $ano->copy()->endOfYear();
 
-                $receitaMes = (new Receita())->setConnection('tenant_temp')
-                    ->whereBetween('data_recebimento', [$mesInicio, $mesFim])
-                    ->sum('valor');
+                        $receita = (new Receita())->setConnection('tenant_temp')
+                            ->whereBetween('data_recebimento', [$anoInicio, $anoFim])
+                            ->sum('valor');
 
-                $despesaMes = (new Despesa())->setConnection('tenant_temp')
-                    ->whereBetween('data_pagamento', [$mesInicio, $mesFim])
-                    ->sum('valor');
+                        $despesa = (new Despesa())->setConnection('tenant_temp')
+                            ->whereBetween('data_pagamento', [$anoInicio, $anoFim])
+                            ->sum('valor');
 
-                $graficoDados['labels'][] = $mes->format('M/Y');
-                $graficoDados['receitas'][] = $receitaMes;
-                $graficoDados['despesas'][] = $despesaMes;
+                        $graficoDados['labels'][] = $ano->format('Y');
+                        $graficoDados['receitas'][] = $receita;
+                        $graficoDados['despesas'][] = $despesa;
+                    }
+                    break;
+
+                case 'semestral':
+                    $periodo = collect();
+                    $dataCursor = $inicio->copy()->startOfYear();
+                    while ($dataCursor->lessThanOrEqualTo($fim)) {
+                        $periodo->push($dataCursor->copy());
+                        $dataCursor->addMonths(6);
+                    }
+
+                    foreach ($periodo as $semestre) {
+                        $semestreFim = $semestre->copy()->addMonths(5)->endOfMonth();
+
+                        $receita = (new Receita())->setConnection('tenant_temp')
+                            ->whereBetween('data_recebimento', [$semestre, $semestreFim])
+                            ->sum('valor');
+
+                        $despesa = (new Despesa())->setConnection('tenant_temp')
+                            ->whereBetween('data_pagamento', [$semestre, $semestreFim])
+                            ->sum('valor');
+
+                        $graficoDados['labels'][] = $semestre->format('m/Y') . ' - ' . $semestreFim->format('m/Y');
+                        $graficoDados['receitas'][] = $receita;
+                        $graficoDados['despesas'][] = $despesa;
+                    }
+                    break;
+
+                default: // mensal
+                    $periodo = $inicio->copy()->startOfMonth()->monthsUntil($fim->copy()->endOfMonth());
+                    foreach ($periodo as $mes) {
+                        $mesInicio = $mes->copy()->startOfMonth();
+                        $mesFim = $mes->copy()->endOfMonth();
+
+                        $receita = (new Receita())->setConnection('tenant_temp')
+                            ->whereBetween('data_recebimento', [$mesInicio, $mesFim])
+                            ->sum('valor');
+
+                        $despesa = (new Despesa())->setConnection('tenant_temp')
+                            ->whereBetween('data_pagamento', [$mesInicio, $mesFim])
+                            ->sum('valor');
+
+                        $graficoDados['labels'][] = $mes->format('m/Y');
+                        $graficoDados['receitas'][] = $receita;
+                        $graficoDados['despesas'][] = $despesa;
+                    }
+                    break;
             }
 
             return view('contratantes.dashboard', compact(
@@ -95,7 +147,8 @@ class DashboardContratanteController extends Controller
                 'movimentacoes',
                 'dataInicio',
                 'dataFim',
-                'graficoDados'
+                'graficoDados',
+                'tipoComparacao',
             ));
         } catch (\Exception $e) {
             return back()->with('error', 'Erro ao conectar com o banco do contratante: ' . $e->getMessage());
