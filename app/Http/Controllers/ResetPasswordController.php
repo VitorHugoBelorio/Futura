@@ -2,78 +2,62 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Mail;
-use App\Models\User;
 
 class ResetPasswordController extends Controller
 {
+    // Exibe o formulário "Esqueceu sua senha?"
     public function showForgotForm()
     {
         return view('auth.forgot-password');
     }
 
+    // Envia o link de redefinição por email
     public function sendResetLink(Request $request)
     {
         $request->validate(['email' => 'required|email']);
 
-        $user = User::where('email', $request->email)->first();
+        $status = Password::sendResetLink($request->only('email'));
 
-        if (!$user) {
-            return back()->with('error', 'E-mail não encontrado');
-        }
-
-        $token = Str::random(64);
-
-        DB::table('password_reset_tokens')->updateOrInsert(
-            ['email' => $request->email],
-            ['token' => $token, 'created_at' => now()]
-        );
-
-        $resetUrl = url("/reset-password/{$token}?email={$request->email}");
-
-        Mail::raw("Clique aqui para redefinir sua senha: $resetUrl", function ($message) use ($request) {
-            $message->to($request->email)->subject('Redefinição de senha');
-        });
-
-        return back()->with('status', 'Link enviado para seu e-mail!');
+        return $status === Password::RESET_LINK_SENT
+            ? back()->with('status', __($status))
+            : back()->withErrors(['email' => __($status)]);
     }
 
-    public function showResetForm(Request $request, $token)
+    // Exibe o formulário de redefinição com token
+    public function showResetForm(Request $request, $token = null)
     {
         return view('auth.reset-password', [
             'token' => $token,
-            'email' => $request->query('email'),
+            'email' => $request->email,
         ]);
     }
 
+
+    // Processa a nova senha
     public function resetPassword(Request $request)
     {
         $request->validate([
-            'email' => 'required|email',
             'token' => 'required',
-            'password' => 'required|min:6|confirmed',
+            'email' => 'required|email',
+            'password' => 'required|confirmed|min:8',
         ]);
 
-        $reset = DB::table('password_reset_tokens')
-            ->where('email', $request->email)
-            ->where('token', $request->token)
-            ->first();
+        $status = Password::reset(
+            $request->only('email', 'password', 'password_confirmation', 'token'),
+            function ($user, $password) {
+                $user->forceFill([
+                    'password' => Hash::make($password),
+                    'remember_token' => Str::random(60),
+                ])->save();
+            }
+        );
 
-        if (!$reset) {
-            return back()->with('error', 'Token inválido ou expirado.');
-        }
-
-        $user = User::where('email', $request->email)->first();
-        $user->password = Hash::make($request->password);
-        $user->save();
-
-        DB::table('password_reset_tokens')->where('email', $request->email)->delete();
-
-        return redirect()->route('login')->with('status', 'Senha redefinida com sucesso!');
+        return $status === Password::PASSWORD_RESET
+            ? redirect()->route('login')->with('status', __($status))
+            : back()->withErrors(['email' => [__($status)]]);
     }
 }
