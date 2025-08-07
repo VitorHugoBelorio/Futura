@@ -14,8 +14,30 @@ class DashboardContratanteController extends Controller
 {
     public function index(Request $request)
     {
-        $dataInicio = $request->input('data_inicio') ?? Carbon::now()->startOfMonth()->toDateString();
-        $dataFim = $request->input('data_fim') ?? Carbon::now()->endOfMonth()->toDateString();
+        $tipoComparacao = $request->input('periodo', 'mensal');
+
+        if ($request->filled('data_inicio') && $request->filled('data_fim')) {
+            $dataInicio = $request->input('data_inicio');
+            $dataFim = $request->input('data_fim');
+        } else {
+            switch ($tipoComparacao) {
+                case 'anual':
+                    $dataInicio = Carbon::now()->subYears(2)->startOfYear()->toDateString();
+                    $dataFim = Carbon::now()->endOfYear()->toDateString();
+                    break;
+
+                case 'semestral':
+                    $dataInicio = Carbon::now()->subMonths(12)->startOfMonth()->toDateString();
+                    $dataFim = Carbon::now()->endOfMonth()->toDateString();
+                    break;
+
+                case 'mensal':
+                default:
+                    $dataInicio = Carbon::now()->subMonths(0)->startOfMonth()->toDateString();
+                    $dataFim = Carbon::now()->endOfMonth()->toDateString();
+                    break;
+            }
+        }
 
         $contratanteId = session('contratante_id');
         if (!$contratanteId) {
@@ -61,8 +83,6 @@ class DashboardContratanteController extends Controller
                     'valor' => $d->valor
                 ];
             }))->sortByDesc('data');
-
-            $tipoComparacao = $request->input('periodo', 'mensal');
 
             $graficoDados = [
                 'labels' => [],
@@ -119,21 +139,21 @@ class DashboardContratanteController extends Controller
                     }
                     break;
 
-                default: // mensal
-                    $periodo = $inicio->copy()->startOfMonth()->monthsUntil($fim->copy()->endOfMonth());
-                    foreach ($periodo as $mes) {
-                        $mesInicio = $mes->copy()->startOfMonth();
-                        $mesFim = $mes->copy()->endOfMonth();
+                default: // mensal → exibe por dia
+                    $periodo = $inicio->copy()->daysUntil($fim->copy());
+                    foreach ($periodo as $dia) {
+                        $diaInicio = $dia->copy()->startOfDay();
+                        $diaFim = $dia->copy()->endOfDay();
 
                         $receita = (new Receita())->setConnection('tenant_temp')
-                            ->whereBetween('data_recebimento', [$mesInicio, $mesFim])
+                            ->whereBetween('data_recebimento', [$diaInicio, $diaFim])
                             ->sum('valor');
 
                         $despesa = (new Despesa())->setConnection('tenant_temp')
-                            ->whereBetween('data_pagamento', [$mesInicio, $mesFim])
+                            ->whereBetween('data_pagamento', [$diaInicio, $diaFim])
                             ->sum('valor');
 
-                        $graficoDados['labels'][] = $mes->format('m/Y');
+                        $graficoDados['labels'][] = $dia->format('d/m');
                         $graficoDados['receitas'][] = $receita;
                         $graficoDados['despesas'][] = $despesa;
                     }
@@ -154,8 +174,6 @@ class DashboardContratanteController extends Controller
             return back()->with('error', 'Erro ao conectar com o banco do contratante: ' . $e->getMessage());
         }
     }
-
-
 
     public function gerarRelatorioPdf(Request $request)
     {

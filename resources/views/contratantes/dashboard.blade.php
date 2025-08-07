@@ -30,13 +30,13 @@
                 <input type="date" name="data_fim" id="data_fim" class="form-control" value="{{ $dataFim }}">
             </div>
 
-            <div class="col-md-3 d-flex align-items-end">
-                <button type="submit" class="btn btn-primary w-100">Filtrar</button>
+            <div class="col-md-3 d-flex align-items-end gap-2">
+                <button type="submit" class="btn btn-primary w-50">Filtrar</button>
+                <a href="{{ route('contratante.dashboard') }}" class="btn btn-secondary w-50">Limpar</a>
             </div>
         </div>
     </form>
-
-
+    <br/>
 
     <div class="row text-center mb-4">
         <div class="col-md-4">
@@ -129,17 +129,25 @@
         options: {
             responsive: true,
             scales: {
+                x: {
+                    type: 'category',
+                    ticks: {
+                        autoSkip: false
+                    }
+                },
                 y: {
                     beginAtZero: true,
                     ticks: {
-                        callback: value => 'R$ ' + value.toLocaleString('pt-BR')
+                        callback: function(value) {
+                            return 'R$ ' + value.toLocaleString('pt-BR');
+                        }
                     }
                 }
             },
             plugins: {
                 tooltip: {
                     callbacks: {
-                        label: (context) => {
+                        label: function(context) {
                             let label = context.dataset.label || '';
                             if (label) label += ': ';
                             label += 'R$ ' + context.raw.toLocaleString('pt-BR');
