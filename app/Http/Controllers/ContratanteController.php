@@ -12,6 +12,9 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Facades\Mail;
+
 
 class ContratanteController extends Controller
 {
@@ -68,6 +71,9 @@ class ContratanteController extends Controller
             '--database' => 'tenant_temp',
             '--force' => true,
         ]);
+
+        // Envia e-mail de redefinição de senha
+        Password::sendResetLink(['email' => $user->email]);
 
         return redirect()->route('gerentes.dashboard')
                         ->with('success', 'Contratante criado com sucesso e banco provisionado!');

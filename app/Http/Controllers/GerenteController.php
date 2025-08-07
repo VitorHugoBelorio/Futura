@@ -6,6 +6,8 @@ use App\Models\User;
 use App\Models\Contratante;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Facades\Mail;
 
 class GerenteController extends Controller
 {
@@ -28,12 +30,15 @@ class GerenteController extends Controller
             'senha' => 'required|min:6',
         ]);
 
-        User::create([
+        $user = User::create([
             'nome' => $request->nome,
             'email' => $request->email,
             'password' => Hash::make($request->senha),
             'perfil' => 'gerente',
         ]);
+
+        // Envia e-mail de redefinição de senha
+        Password::sendResetLink(['email' => $user->email]);
 
         return redirect()->route('gerentes.index')->with('success', 'Gerente criado com sucesso.');
     }
