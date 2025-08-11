@@ -30,14 +30,17 @@ class GerenteController extends Controller
             'senha' => 'required|min:6',
         ]);
 
+        // Normalização dos dados
+        $nomeNormalizado = ucwords(mb_strtolower(trim($request->nome), 'UTF-8'));
+        $emailNormalizado = mb_strtolower(trim($request->email), 'UTF-8');
+
         $user = User::create([
-            'nome' => $request->nome,
-            'email' => $request->email,
+            'nome' => $nomeNormalizado,
+            'email' => $emailNormalizado,
             'password' => Hash::make($request->senha),
             'perfil' => 'gerente',
         ]);
 
-        // Envia e-mail de redefinição de senha
         Password::sendResetLink(['email' => $user->email]);
 
         return redirect()->route('gerentes.index')->with('success', 'Gerente criado com sucesso.');
@@ -69,8 +72,9 @@ class GerenteController extends Controller
             'senha' => 'nullable|min:6',
         ]);
 
-        $gerente->nome = $request->nome;
-        $gerente->email = $request->email;
+        // Normalização
+        $gerente->nome = ucwords(mb_strtolower(trim($request->nome), 'UTF-8'));
+        $gerente->email = mb_strtolower(trim($request->email), 'UTF-8');
 
         if ($request->filled('senha')) {
             $gerente->password = Hash::make($request->senha);
@@ -78,7 +82,7 @@ class GerenteController extends Controller
 
         $gerente->save();
 
-    return redirect()->route('gerentes.index')->with('success', 'Gerente atualizado com sucesso.');
+        return redirect()->route('gerentes.index')->with('success', 'Gerente atualizado com sucesso.');
     }
 
     public function dashboard()

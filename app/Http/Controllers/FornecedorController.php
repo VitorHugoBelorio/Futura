@@ -20,7 +20,11 @@ class FornecedorController extends Controller
             'telefone' => 'nullable|string',
         ]);
 
-        Fornecedor::create($request->only(['nome', 'cnpj', 'telefone']));
+        Fornecedor::create([
+            'nome' => ucfirst(strtolower(trim($request->nome))),
+            'cnpj' => preg_replace('/\D/', '', $request->cnpj), // mantém só números
+            'telefone' => $request->telefone ? preg_replace('/\D/', '', $request->telefone) : null,
+        ]);
 
         return redirect()
             ->route('contratantes.show', session('contratante_id'))
@@ -43,7 +47,11 @@ class FornecedorController extends Controller
             'telefone' => 'nullable|string',
         ]);
 
-        $fornecedor->update($request->only(['nome', 'cnpj', 'telefone']));
+        $fornecedor->update([
+            'nome' => ucfirst(strtolower(trim($request->nome))),
+            'cnpj' => preg_replace('/\D/', '', $request->cnpj),
+            'telefone' => $request->telefone ? preg_replace('/\D/', '', $request->telefone) : null,
+        ]);
 
         return redirect()
             ->route('contratantes.show', session('contratante_id'))

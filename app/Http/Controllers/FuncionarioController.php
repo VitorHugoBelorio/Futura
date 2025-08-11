@@ -29,9 +29,13 @@ class FuncionarioController extends Controller
             'senha' => 'required|min:6',
         ]);
 
+        // Normalização dos dados
+        $nomeNormalizado = ucwords(mb_strtolower(trim($request->nome), 'UTF-8'));
+        $emailNormalizado = mb_strtolower(trim($request->email), 'UTF-8');
+
         $user = User::create([
-            'nome' => $request->nome,
-            'email' => $request->email,
+            'nome' => $nomeNormalizado,
+            'email' => $emailNormalizado,
             'password' => Hash::make($request->senha),
             'perfil' => 'funcionario',
         ]);
@@ -68,8 +72,8 @@ class FuncionarioController extends Controller
             'senha' => 'nullable|min:6',
         ]);
 
-        $funcionario->nome = $request->nome;
-        $funcionario->email = $request->email;
+        $funcionario->nome = ucfirst(strtolower(trim($request->nome)));
+        $funcionario->email = strtolower(trim($request->email));
 
         if ($request->filled('senha')) {
             $funcionario->password = Hash::make($request->senha);
@@ -77,8 +81,9 @@ class FuncionarioController extends Controller
 
         $funcionario->save();
 
-    return redirect()->route('funcionarios.index')->with('success', 'Funcionário atualizado com sucesso.');
+        return redirect()->route('funcionarios.index')->with('success', 'Funcionário atualizado com sucesso.');
     }
+
 
 
     public function dashboard()
