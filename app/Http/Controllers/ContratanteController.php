@@ -14,6 +14,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 
 
 class ContratanteController extends Controller
@@ -41,23 +42,25 @@ class ContratanteController extends Controller
             'cnpj' => 'required|string|max:18|unique:contratantes,cnpj',
             'email' => 'required|email|unique:users,email|unique:contratantes,email',
             'telefone' => 'nullable|string|max:20',
-            'senha' => 'required|string|min:6',
         ]);
+
+        // Gera senha aleatória
+        $senhaAleatoria = Str::random(12);
 
         $user = User::create([
             'nome'     => $request->nome,
-            'email'    => $request->email,
-            'password' => Hash::make($request->senha),
+            'email'    => strtolower(trim($request->email)),
+            'password' => Hash::make($senhaAleatoria),
             'perfil'   => 'contratante',
         ]);
 
         $contratante = Contratante::create([
             'nome'        => $request->nome,
             'cnpj'        => $request->cnpj,
-            'email'       => $request->email,
+            'email'       => strtolower(trim($request->email)),
             'telefone'    => $request->telefone,
             'user_id'     => $user->id,
-            'banco_dados' => '', // será atualizado depois com o id
+            'banco_dados' => '',
         ]);
 
         $nomeBanco = (string) $contratante->id;
@@ -143,29 +146,21 @@ class ContratanteController extends Controller
             'cnpj'     => 'required|string|max:18|unique:contratantes,cnpj,' . $contratante->id,
             'email'    => 'required|email|unique:contratantes,email,' . $contratante->id,
             'telefone' => 'nullable|string|max:20',
-            'password' => 'nullable|string|min:6',
         ]);
 
-        // Atualiza o contratante
         $contratante->update([
             'nome'     => $request->nome,
             'cnpj'     => $request->cnpj,
-            'email'    => $request->email,
+            'email'    => strtolower(trim($request->email)),
             'telefone' => $request->telefone,
         ]);
 
-        // Atualiza o usuário diretamente pelo relacionamento user_id
         if ($contratante->user_id) {
             $user = User::find($contratante->user_id);
 
             if ($user) {
                 $user->nome  = $request->nome;
-                $user->email = $request->email;
-
-                if ($request->filled('password')) {
-                    $user->password = bcrypt($request->password);
-                }
-
+                $user->email = strtolower(trim($request->email));
                 $user->save();
             }
         }

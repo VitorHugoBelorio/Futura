@@ -27,8 +27,10 @@ class GerenteController extends Controller
         $request->validate([
             'nome' => 'required',
             'email' => 'required|email|unique:users,email',
-            'senha' => 'required|min:6',
         ]);
+
+        // Gera senha aleatória
+        $senhaAleatoria = Str::random(12);
 
         // Normalização dos dados
         $nomeNormalizado = ucwords(mb_strtolower(trim($request->nome), 'UTF-8'));
@@ -37,7 +39,7 @@ class GerenteController extends Controller
         $user = User::create([
             'nome' => $nomeNormalizado,
             'email' => $emailNormalizado,
-            'password' => Hash::make($request->senha),
+            'password' => Hash::make($senhaAleatoria),
             'perfil' => 'gerente',
         ]);
 
@@ -69,16 +71,11 @@ class GerenteController extends Controller
         $request->validate([
             'nome' => 'required',
             'email' => 'required|email|unique:users,email,' . $gerente->id,
-            'senha' => 'nullable|min:6',
         ]);
 
         // Normalização
         $gerente->nome = ucwords(mb_strtolower(trim($request->nome), 'UTF-8'));
         $gerente->email = mb_strtolower(trim($request->email), 'UTF-8');
-
-        if ($request->filled('senha')) {
-            $gerente->password = Hash::make($request->senha);
-        }
 
         $gerente->save();
 

@@ -30,11 +30,6 @@
             <input type="email" name="email" class="form-control" value="{{ old('email') }}" required>
         </div>
 
-        <div class="mb-3">
-            <label for="senha" class="form-label">Senha</label>
-            <input type="password" name="senha" class="form-control" required minlength="6">
-        </div>
-
         <button type="submit" class="btn btn-primary">Salvar</button>
         <a href="{{ route('funcionarios.index') }}" class="btn btn-secondary">Cancelar</a>
     </form>

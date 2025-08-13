@@ -27,13 +27,8 @@
             <input type="text" name="telefone" class="form-control">
         </div>
 
-        <div class="mb-3">
-            <label for="senha">Senha de acesso do contratante</label>
-            <input type="password" name="senha" id="senha" class="form-control" required>
-        </div>	
-
         <button type="submit" class="btn btn-success">Cadastrar</button>
-        <a href="{{ auth()->user()->isGerente() ? route('gerentes.dashboard') : route('funcionarios.dashboard') }}" class="btn btn-secondary">Voltar</a>
+        <a href="{{ route('gerentes.dashboard') }}" class="btn btn-secondary">Voltar</a>
     </form>
 </div>
 @endsection

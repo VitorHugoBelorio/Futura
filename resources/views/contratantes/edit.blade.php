@@ -28,12 +28,6 @@
             <input type="text" name="telefone" class="form-control" value="{{ $contratante->telefone }}">
         </div>
 
-        <div class="mb-3">
-            <label for="password" class="form-label">Nova Senha (opcional):</label>
-            <input type="password" name="password" class="form-control">
-            <small class="form-text text-muted">Deixe em branco para manter a senha atual.</small>
-        </div>
-
         <button type="submit" class="btn btn-primary">Salvar</button>
         <a href="{{ auth()->user()->isGerente() ? route('gerentes.dashboard') : route('funcionarios.dashboard') }}" class="btn btn-secondary">Voltar</a>
     </form>

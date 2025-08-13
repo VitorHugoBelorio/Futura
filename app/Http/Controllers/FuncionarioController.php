@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 
 class FuncionarioController extends Controller
 {
@@ -26,8 +27,10 @@ class FuncionarioController extends Controller
         $request->validate([
             'nome' => 'required',
             'email' => 'required|email|unique:users,email',
-            'senha' => 'required|min:6',
         ]);
+
+        // Gera senha aleatória
+        $senhaAleatoria = Str::random(12);
 
         // Normalização dos dados
         $nomeNormalizado = ucwords(mb_strtolower(trim($request->nome), 'UTF-8'));
@@ -36,7 +39,7 @@ class FuncionarioController extends Controller
         $user = User::create([
             'nome' => $nomeNormalizado,
             'email' => $emailNormalizado,
-            'password' => Hash::make($request->senha),
+            'password' => Hash::make($senhaAleatoria),
             'perfil' => 'funcionario',
         ]);
 
@@ -69,15 +72,10 @@ class FuncionarioController extends Controller
         $request->validate([
             'nome' => 'required',
             'email' => 'required|email|unique:users,email,' . $funcionario->id,
-            'senha' => 'nullable|min:6',
         ]);
 
         $funcionario->nome = ucfirst(strtolower(trim($request->nome)));
         $funcionario->email = strtolower(trim($request->email));
-
-        if ($request->filled('senha')) {
-            $funcionario->password = Hash::make($request->senha);
-        }
 
         $funcionario->save();
 

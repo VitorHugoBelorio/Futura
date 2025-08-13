@@ -22,11 +22,6 @@
             <input type="email" name="email" id="email" class="form-control" value="{{ old('email', $funcionario->email) }}" required>
         </div>
 
-        <div class="mb-3">
-            <label for="senha" class="form-label">Nova Senha <small>(deixe em branco se não quiser alterar)</small></label>
-            <input type="password" name="senha" id="senha" class="form-control">
-        </div>
-
         <button type="submit" class="btn btn-primary">Salvar Alterações</button>
         <a href="{{ route('funcionarios.index') }}" class="btn btn-secondary">Cancelar</a>
     </form>
