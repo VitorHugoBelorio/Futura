@@ -13,11 +13,9 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardContratanteController;
 use App\Http\Controllers\ResetPasswordController;
 
-
 Route::get('/', function () {
     return view('welcome');
 });
-
 
 // Página de login
 Route::get('/login', [AuthController::class, 'index'])->name('login');
@@ -25,8 +23,13 @@ Route::post('/login', [AuthController::class, 'loginAttempt'])->name('login.atte
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 // Rotas dos dashboards
-Route::get('/gerente/dashboard', [GerenteController::class, 'dashboard'])->name('gerentes.dashboard')->middleware('auth');
-Route::get('/funcionario/dashboard', [FuncionarioController::class, 'dashboard'])->name('funcionarios.dashboard')->middleware('auth');
+Route::get('/gerente/dashboard', [GerenteController::class, 'dashboard'])
+    ->name('gerentes.dashboard')
+    ->middleware(['auth', 'prevent-back-history']);
+
+Route::get('/funcionario/dashboard', [FuncionarioController::class, 'dashboard'])
+    ->name('funcionarios.dashboard')
+    ->middleware(['auth', 'prevent-back-history']);
 
 // Rota pública para selecionar contratante
 Route::get('/selecionar-contratante', [ContratoAtivoController::class, 'index'])->name('selecionar.contratante');
@@ -36,36 +39,33 @@ Route::post('/selecionar-contratante', [ContratoAtivoController::class, 'definir
 Route::resource('contratantes', ContratanteController::class);
 
 // Rotas autenticadas sem banco tenant
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'prevent-back-history'])->group(function () {
     Route::get('/gerente/funcionarios', [GerenteController::class, 'funcionarios'])->name('funcionarios.index');
 });
 
 // Rotas autenticadas COM banco tenant
-Route::middleware(['auth', UsarBancoDoContratante::class])->group(function () {
+Route::middleware(['auth', 'prevent-back-history', UsarBancoDoContratante::class])->group(function () {
     Route::resource('fornecedores', FornecedorController::class)->except(['index', 'show']);
     Route::resource('receitas', ReceitaController::class);
     Route::resource('despesas', DespesaController::class);
+    Route::get('/dashboard', [DashboardContratanteController::class, 'index'])->name('contratante.dashboard');
 });
 
-
-Route::middleware(['auth', 'gerente'])->prefix('gerente')->group(function () {
+// Gerente
+Route::middleware(['auth', 'gerente', 'prevent-back-history'])->prefix('gerente')->group(function () {
     Route::resource('funcionarios', FuncionarioController::class)->only([
         'index', 'create', 'store', 'edit', 'update', 'destroy'
     ]);
     Route::resource('gerentes', GerenteController::class)->only([
-    'index', 'create', 'store', 'edit', 'update', 'destroy'
+        'index', 'create', 'store', 'edit', 'update', 'destroy'
     ]);
 });
 
-Route::middleware(['auth', UsarBancoDoContratante::class])->group(function () {
-    Route::get('/dashboard', [DashboardContratanteController::class, 'index'])->name('contratante.dashboard');
-});
-
-// Rota para gerar relatório do mês referente ao contratante.
+// Rota para gerar relatório do mês referente ao contratante
 Route::get('/contratante/relatorio/pdf', [DashboardContratanteController::class, 'gerarRelatorioPdf'])
     ->name('contratante.relatorio.pdf');
 
-// Recuperar senha.
+// Recuperar senha
 Route::get('forgot-password', [ResetPasswordController::class, 'showForgotForm'])->name('password.request');
 Route::post('forgot-password', [ResetPasswordController::class, 'sendResetLink'])->name('password.email');
 

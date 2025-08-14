@@ -16,6 +16,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'gerente' => \App\Http\Middleware\IsGerente::class,
             'funcionario' => \App\Http\Middleware\IsFuncionario::class,
             'tenant' => \App\Http\Middleware\UsarBancoDoContratante::class,
+            'prevent-back-history' => \App\Http\Middleware\PreventBackHistory::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
