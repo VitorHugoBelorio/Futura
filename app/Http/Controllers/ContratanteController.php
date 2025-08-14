@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 
+use App\Jobs\ProvisionarBancoContratante;
 
 class ContratanteController extends Controller
 {
@@ -32,7 +33,6 @@ class ContratanteController extends Controller
 
     public function store(Request $request)
     {
-        // Remove máscara do CNPJ e normaliza
         $request->merge([
             'cnpj' => preg_replace('/\D/', '', $request->cnpj)
         ]);
@@ -44,7 +44,6 @@ class ContratanteController extends Controller
             'telefone' => 'nullable|string|max:20',
         ]);
 
-        // Gera senha aleatória
         $senhaAleatoria = Str::random(12);
 
         $user = User::create([
@@ -63,23 +62,11 @@ class ContratanteController extends Controller
             'banco_dados' => '',
         ]);
 
-        $nomeBanco = (string) $contratante->id;
-        DB::statement("CREATE DATABASE `$nomeBanco`");
-
-        $contratante->update(['banco_dados' => $nomeBanco]);
-
-        config(['database.connections.tenant_temp.database' => $nomeBanco]);
-        Artisan::call('migrate', [
-            '--path' => 'database/migrations/tenant',
-            '--database' => 'tenant_temp',
-            '--force' => true,
-        ]);
-
-        // Envia e-mail de redefinição de senha
-        Password::sendResetLink(['email' => $user->email]);
+        // Dispara o job em segundo plano
+        ProvisionarBancoContratante::dispatchSync($contratante->id, $user->id);
 
         return redirect()->route('gerentes.dashboard')
-                        ->with('success', 'Contratante criado com sucesso e banco provisionado!');
+            ->with('success', 'Contratante criado com sucesso! O banco será provisionado em instantes.');
     }
 
 
