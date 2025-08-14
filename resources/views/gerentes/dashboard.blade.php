@@ -23,6 +23,26 @@
         </div>
     </div>
 
+    {{-- Barra de pesquisa e filtro --}}
+    <form method="GET" action="{{ route('gerentes.dashboard') }}" class="row g-2 mb-4">
+        <div class="col-md-6">
+            <input type="text" name="search" value="{{ request('search') }}" 
+                   class="form-control" placeholder="Pesquisar contratantes...">
+        </div>
+        <div class="col-md-4">
+            <select name="filtro" class="form-select">
+                <option value="">Filtrar por</option>
+                <option value="nome" {{ request('filtro') == 'nome' ? 'selected' : '' }}>Nome</option>
+                <option value="cnpj" {{ request('filtro') == 'cnpj' ? 'selected' : '' }}>CNPJ</option>
+                <option value="email" {{ request('filtro') == 'email' ? 'selected' : '' }}>Email</option>
+                <option value="telefone" {{ request('filtro') == 'telefone' ? 'selected' : '' }}>Telefone</option>
+            </select>
+        </div>
+        <div class="col-md-2 d-grid">
+            <button type="submit" class="btn btn-outline-primary">Filtrar</button>
+        </div>
+    </form>
+
     <div class="table-responsive" style="max-height: 500px; overflow-y: auto;">
         <table class="table table-hover align-middle">
             <thead class="table-light position-sticky top-0" style="z-index: 1;">
@@ -67,6 +87,9 @@
                 @endforelse
             </tbody>
         </table>
+        <div class="mt-3">
+            {{ $contratantes->links() }}
+        </div>
     </div>
 </div>
 @endsection

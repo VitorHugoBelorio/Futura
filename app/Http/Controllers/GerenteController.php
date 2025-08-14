@@ -82,9 +82,35 @@ class GerenteController extends Controller
         return redirect()->route('gerentes.index')->with('success', 'Gerente atualizado com sucesso.');
     }
 
-    public function dashboard()
+    public function dashboard(Request $request)
     {
-        $contratantes = Contratante::all(); 
+        $query = Contratante::query();
+
+        // Captura os valores do formulário
+        $search = $request->input('search');
+        $filtro = $request->input('filtro');
+
+        // Se tiver pesquisa
+        if (!empty($search)) {
+            if (!empty($filtro)) {
+                // Pesquisa em um campo específico
+                $query->where($filtro, 'LIKE', '%' . $search . '%');
+            } else {
+                // Pesquisa em todos os campos relevantes
+                $query->where(function ($q) use ($search) {
+                    $q->where('nome', 'LIKE', '%' . $search . '%')
+                    ->orWhere('cnpj', 'LIKE', '%' . $search . '%')
+                    ->orWhere('email', 'LIKE', '%' . $search . '%')
+                    ->orWhere('telefone', 'LIKE', '%' . $search . '%');
+                });
+            }
+        }
+
+        // Ordena e pagina
+        $contratantes = $query->orderBy('nome')
+                            ->paginate(10)
+                            ->appends($request->all());
+
         return view('gerentes.dashboard', compact('contratantes'));
     }
 
