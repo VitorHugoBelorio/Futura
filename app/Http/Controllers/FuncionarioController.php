@@ -13,106 +13,132 @@ class FuncionarioController extends Controller
 {
     public function index()
     {
-        $funcionarios = User::where('perfil', 'funcionario')->get();
-        return view('funcionarios.index', compact('funcionarios'));
+        try {
+            $funcionarios = User::where('perfil', 'funcionario')->get();
+            return view('funcionarios.index', compact('funcionarios'));
+        } catch (\Exception $e) {
+            return back()->with('error', 'Erro ao carregar funcionários: ' . $e->getMessage());
+        }
     }
 
     public function create()
     {
-        return view('funcionarios.create');
+        try {
+            return view('funcionarios.create');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Erro ao carregar formulário: ' . $e->getMessage());
+        }
     }
 
     public function store(Request $request)
     {
-        $request->validate([
-            'nome' => 'required',
-            'email' => 'required|email|unique:users,email',
-        ]);
+        try {
+            $request->validate([
+                'nome' => 'required',
+                'email' => 'required|email|unique:users,email',
+            ]);
 
-        // Gera senha aleatória
-        $senhaAleatoria = Str::random(12);
+            // Gera senha aleatória
+            $senhaAleatoria = Str::random(12);
 
-        // Normalização dos dados
-        $nomeNormalizado = ucwords(mb_strtolower(trim($request->nome), 'UTF-8'));
-        $emailNormalizado = mb_strtolower(trim($request->email), 'UTF-8');
+            // Normalização dos dados
+            $nomeNormalizado = ucwords(mb_strtolower(trim($request->nome), 'UTF-8'));
+            $emailNormalizado = mb_strtolower(trim($request->email), 'UTF-8');
 
-        $user = User::create([
-            'nome' => $nomeNormalizado,
-            'email' => $emailNormalizado,
-            'password' => Hash::make($senhaAleatoria),
-            'perfil' => 'funcionario',
-        ]);
+            $user = User::create([
+                'nome' => $nomeNormalizado,
+                'email' => $emailNormalizado,
+                'password' => Hash::make($senhaAleatoria),
+                'perfil' => 'funcionario',
+            ]);
 
-        // Envia e-mail de redefinição de senha
-        Password::sendResetLink(['email' => $user->email]);
+            // Envia e-mail de redefinição de senha
+            Password::sendResetLink(['email' => $user->email]);
 
-        return redirect()->route('funcionarios.index')->with('success', 'Funcionário criado com sucesso.');
+            return redirect()->route('funcionarios.index')->with('success', 'Funcionário criado com sucesso.');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Erro ao criar funcionário: ' . $e->getMessage());
+        }
     }
 
     public function destroy($id)
     {
-        $user = User::findOrFail($id);
-        if ($user->perfil === 'funcionario') {
-            $user->delete();
-            return redirect()->route('funcionarios.index')->with('success', 'Funcionário excluído.');
+        try {
+            $user = User::findOrFail($id);
+            if ($user->perfil === 'funcionario') {
+                $user->delete();
+                return redirect()->route('funcionarios.index')->with('success', 'Funcionário excluído.');
+            }
+            abort(403);
+        } catch (\Exception $e) {
+            return back()->with('error', 'Erro ao excluir funcionário: ' . $e->getMessage());
         }
-        abort(403);
     }
 
     public function edit($id)
     {
-        $funcionario = User::where('perfil', 'funcionario')->findOrFail($id);
-        return view('funcionarios.edit', compact('funcionario'));
+        try {
+            $funcionario = User::where('perfil', 'funcionario')->findOrFail($id);
+            return view('funcionarios.edit', compact('funcionario'));
+        } catch (\Exception $e) {
+            return back()->with('error', 'Erro ao carregar funcionário: ' . $e->getMessage());
+        }
     }
 
     public function update(Request $request, $id)
     {
-        $funcionario = User::where('perfil', 'funcionario')->findOrFail($id);
+        try {
+            $funcionario = User::where('perfil', 'funcionario')->findOrFail($id);
 
-        $request->validate([
-            'nome' => 'required',
-            'email' => 'required|email|unique:users,email,' . $funcionario->id,
-        ]);
+            $request->validate([
+                'nome' => 'required',
+                'email' => 'required|email|unique:users,email,' . $funcionario->id,
+            ]);
 
-        $funcionario->nome = ucfirst(strtolower(trim($request->nome)));
-        $funcionario->email = strtolower(trim($request->email));
+            $funcionario->nome = ucfirst(strtolower(trim($request->nome)));
+            $funcionario->email = strtolower(trim($request->email));
 
-        $funcionario->save();
+            $funcionario->save();
 
-        return redirect()->route('funcionarios.index')->with('success', 'Funcionário atualizado com sucesso.');
+            return redirect()->route('funcionarios.index')->with('success', 'Funcionário atualizado com sucesso.');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Erro ao atualizar funcionário: ' . $e->getMessage());
+        }
     }
 
-
-
-public function dashboard(Request $request)
+    public function dashboard(Request $request)
     {
-        $query = Contratante::query();
+        try {
+            $query = Contratante::query();
 
-        // Captura os valores do formulário
-        $search = $request->input('search');
-        $filtro = $request->input('filtro');
+            // Captura os valores do formulário
+            $search = $request->input('search');
+            $filtro = $request->input('filtro');
 
-        // Se tiver pesquisa
-        if (!empty($search)) {
-            if (!empty($filtro)) {
-                // Pesquisa em um campo específico
-                $query->where($filtro, 'LIKE', '%' . $search . '%');
-            } else {
-                // Pesquisa em todos os campos relevantes
-                $query->where(function ($q) use ($search) {
-                    $q->where('nome', 'LIKE', '%' . $search . '%')
-                    ->orWhere('cnpj', 'LIKE', '%' . $search . '%')
-                    ->orWhere('email', 'LIKE', '%' . $search . '%')
-                    ->orWhere('telefone', 'LIKE', '%' . $search . '%');
-                });
+            // Se tiver pesquisa
+            if (!empty($search)) {
+                if (!empty($filtro)) {
+                    // Pesquisa em um campo específico
+                    $query->where($filtro, 'LIKE', '%' . $search . '%');
+                } else {
+                    // Pesquisa em todos os campos relevantes
+                    $query->where(function ($q) use ($search) {
+                        $q->where('nome', 'LIKE', '%' . $search . '%')
+                        ->orWhere('cnpj', 'LIKE', '%' . $search . '%')
+                        ->orWhere('email', 'LIKE', '%' . $search . '%')
+                        ->orWhere('telefone', 'LIKE', '%' . $search . '%');
+                    });
+                }
             }
+
+            // Ordena e pagina
+            $contratantes = $query->orderBy('nome')
+                                ->paginate(10)
+                                ->appends($request->all());
+
+            return view('funcionarios.dashboard', compact('contratantes'));
+        } catch (\Exception $e) {
+            return back()->with('error', 'Erro ao carregar dashboard: ' . $e->getMessage());
         }
-
-        // Ordena e pagina
-        $contratantes = $query->orderBy('nome')
-                            ->paginate(10)
-                            ->appends($request->all());
-
-        return view('funcionarios.dashboard', compact('contratantes'));
     }
 }
