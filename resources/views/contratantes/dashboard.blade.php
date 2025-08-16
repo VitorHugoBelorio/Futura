@@ -8,7 +8,7 @@
         Baixar Relatório PDF
     </a>
 
-
+    {{-- Filtros --}}
     <form method="GET" action="{{ route('contratante.dashboard') }}" id="filtro-form">
         <div class="row">
             <div class="col-md-3">
@@ -38,6 +38,7 @@
     </form>
     <br/>
 
+    {{-- Cards resumo --}}
     <div class="row text-center mb-4">
         <div class="col-md-4">
             <div class="card border-success">
@@ -67,38 +68,62 @@
         </div>
     </div>
 
-    <h3>Movimentações</h3>
-    <table class="table table-bordered">
-        <thead>
-            <tr>
-                <th>Data</th>
-                <th>Tipo</th>
-                <th>Descrição</th>
-                <th>Valor</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach($movimentacoes as $mov)
-                <tr>
-                    <td>{{ \Carbon\Carbon::parse($mov['data'])->format('d/m/Y') }}</td>
-                    <td>{{ $mov['tipo'] }}</td>
-                    <td>{{ $mov['descricao'] }}</td>
-                    <td class="{{ $mov['tipo'] === 'Receita' ? 'text-success' : 'text-danger' }}">
-                        R$ {{ number_format($mov['valor'], 2, ',', '.') }}
-                    </td>
-                </tr>
-            @endforeach
-        </tbody>
-    </table>
+    {{-- Abas Bootstrap --}}
+    <ul class="nav nav-tabs" id="dashboardTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="movimentacoes-tab" data-bs-toggle="tab" data-bs-target="#movimentacoes" type="button" role="tab">
+                Movimentações
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="grafico-tab" data-bs-toggle="tab" data-bs-target="#grafico" type="button" role="tab">
+                Evolução Gráfica
+            </button>
+        </li>
+    </ul>
 
+    <div class="tab-content mt-3" id="dashboardTabsContent">
+        {{-- Aba Movimentações --}}
+        <div class="tab-pane fade show active" id="movimentacoes" role="tabpanel">
+            <h3>Movimentações</h3>
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>Data</th>
+                        <th>Tipo</th>
+                        <th>Descrição</th>
+                        <th>Valor</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($movimentacoes as $mov)
+                        <tr>
+                            <td>{{ \Carbon\Carbon::parse($mov['data'])->format('d/m/Y') }}</td>
+                            <td>{{ $mov['tipo'] }}</td>
+                            <td>{{ $mov['descricao'] }}</td>
+                            <td class="{{ $mov['tipo'] === 'Receita' ? 'text-success' : 'text-danger' }}">
+                                R$ {{ number_format($mov['valor'], 2, ',', '.') }}
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
 
-    <div class="card mt-4">
-    <div class="card-body">
-        <h5 class="card-title">Evolução mensal</h5>
-        <canvas id="graficoEvolucao" height="100"></canvas>
+        {{-- Aba Gráfico --}}
+        <div class="tab-pane fade" id="grafico" role="tabpanel">
+            <div class="card mt-3">
+                <div class="card-body">
+                    <h5 class="card-title">Evolução mensal</h5>
+                    <canvas id="graficoEvolucao" height="100"></canvas>
+                </div>
+            </div>
+        </div>
     </div>
-    </div>
 
+</div>
+
+{{-- Chart.js --}}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
     const ctx = document.getElementById('graficoEvolucao').getContext('2d');
@@ -129,12 +154,6 @@
         options: {
             responsive: true,
             scales: {
-                x: {
-                    type: 'category',
-                    ticks: {
-                        autoSkip: false
-                    }
-                },
                 y: {
                     beginAtZero: true,
                     ticks: {
@@ -143,66 +162,46 @@
                         }
                     }
                 }
-            },
-            plugins: {
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            let label = context.dataset.label || '';
-                            if (label) label += ': ';
-                            label += 'R$ ' + context.raw.toLocaleString('pt-BR');
-                            return label;
-                        }
-                    }
-                }
             }
         }
     });
 </script>
 
+{{-- Script para preencher as datas de acordo com o período --}}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const periodoSelect = document.querySelector('select[name="periodo"]');
+        const dataInicioInput = document.querySelector('input[name="data_inicio"]');
+        const dataFimInput = document.querySelector('input[name="data_fim"]');
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const periodoSelect = document.querySelector('select[name="periodo"]');
-            const dataInicioInput = document.querySelector('input[name="data_inicio"]');
-            const dataFimInput = document.querySelector('input[name="data_fim"]');
+        periodoSelect.addEventListener('change', function () {
+            const now = new Date();
+            let inicio, fim;
 
-            periodoSelect.addEventListener('change', function () {
-                const now = new Date();
-                let inicio, fim;
+            if (this.value === 'mensal') {
+                inicio = new Date(now.getFullYear(), now.getMonth(), 1);
+                fim = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+            } else if (this.value === 'semestral') {
+                const mes = now.getMonth();
+                const ano = now.getFullYear();
 
-                if (this.value === 'mensal') {
-                    // Primeiro e último dia do mês atual
-                    inicio = new Date(now.getFullYear(), now.getMonth(), 1);
-                    fim = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-
-                } else if (this.value === 'semestral') {
-                    const mes = now.getMonth(); // 0 a 11
-                    const ano = now.getFullYear();
-
-                    if (mes < 6) {
-                        // Primeiro semestre
-                        inicio = new Date(ano, 0, 1);
-                        fim = new Date(ano, 5, 30);
-                    } else {
-                        // Segundo semestre
-                        inicio = new Date(ano, 6, 1);
-                        fim = new Date(ano, 11, 31);
-                    }
-
-                } else if (this.value === 'anual') {
-                    const ano = now.getFullYear();
+                if (mes < 6) {
                     inicio = new Date(ano, 0, 1);
+                    fim = new Date(ano, 5, 30);
+                } else {
+                    inicio = new Date(ano, 6, 1);
                     fim = new Date(ano, 11, 31);
                 }
+            } else if (this.value === 'anual') {
+                const ano = now.getFullYear();
+                inicio = new Date(ano, 0, 1);
+                fim = new Date(ano, 11, 31);
+            }
 
-                // Preenche os campos de data no formato YYYY-MM-DD
-                const formatDate = (date) => date.toISOString().split('T')[0];
-
-                dataInicioInput.value = formatDate(inicio);
-                dataFimInput.value = formatDate(fim);
-            });
+            const formatDate = (date) => date.toISOString().split('T')[0];
+            dataInicioInput.value = formatDate(inicio);
+            dataFimInput.value = formatDate(fim);
         });
-    </script>
-
+    });
+</script>
 @endsection
