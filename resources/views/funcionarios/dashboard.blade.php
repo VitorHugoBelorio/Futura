@@ -65,4 +65,8 @@
         </table>
     </div>
 </div>
+
+<div class="mt-3 d-flex justify-content-center">
+    {{ $contratantes->links('pagination::bootstrap-5') }}
+</div>
 @endsection
