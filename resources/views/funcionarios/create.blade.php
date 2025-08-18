@@ -8,8 +8,7 @@
 
     @if ($errors->any())
         <div class="alert alert-danger">
-            <strong>Ops!</strong> Há alguns erros no formulário.<br><br>
-            <ul class="mb-0">
+            <ul>
                 @foreach ($errors->all() as $erro)
                     <li>{{ $erro }}</li>
                 @endforeach

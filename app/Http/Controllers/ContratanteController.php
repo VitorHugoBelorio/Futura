@@ -45,9 +45,21 @@ class ContratanteController extends Controller
             $request->validate([
                 'nome' => 'required|string|max:255',
                 'cnpj' => 'required|string|max:18|unique:contratantes,cnpj',
-                'email' => 'required|email|unique:users,email|unique:contratantes,email',
+                'email' => [
+                    'required',
+                    'email',
+                    'unique:users,email', // Garante que não existe em users
+                    'unique:contratantes,email', // Garante que não existe em contratantes
+                ],
                 'telefone' => 'nullable|string|max:20',
             ]);
+
+            // Verifica se o e-mail já existe na tabela users
+            if (User::where('email', strtolower(trim($request->email)))->exists()) {
+                return back()
+                    ->withErrors(['email' => 'Este e-mail já está cadastrado no sistema.'])
+                    ->withInput();
+            }
 
             $senhaAleatoria = Str::random(12);
 
@@ -72,6 +84,10 @@ class ContratanteController extends Controller
 
             return redirect()->route('gerentes.dashboard')
                 ->with('success', 'Contratante criado com sucesso! O banco será provisionado em instantes.');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return back()
+                ->withErrors(['email' => 'Este e-mail já está cadastrado no sistema.'])
+                ->withInput();
         } catch (\Exception $e) {
             return back()->with('error', 'Erro ao criar contratante: ' . $e->getMessage());
         }

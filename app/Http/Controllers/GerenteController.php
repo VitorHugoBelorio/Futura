@@ -36,7 +36,12 @@ class GerenteController extends Controller
         try {
             $request->validate([
                 'nome' => 'required',
-                'email' => 'required|email|unique:users,email',
+                'email' => [
+                    'required',
+                    'email',
+                    'max:255',
+                    'unique:users,email',
+                ],
             ]);
 
             // Gera senha aleatória
@@ -56,6 +61,8 @@ class GerenteController extends Controller
             Password::sendResetLink(['email' => $user->email]);
 
             return redirect()->route('gerentes.index')->with('success', 'Gerente criado com sucesso.');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return back()->withErrors(['email' => 'Este e-mail já está cadastrado no sistema.'])->withInput();
         } catch (\Exception $e) {
             return back()->with('error', 'Erro ao criar gerente: ' . $e->getMessage());
         }
