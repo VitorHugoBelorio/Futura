@@ -70,14 +70,16 @@
                             <a href="{{ route('contratantes.edit', $contratante) }}" class="btn btn-outline-warning" title="Editar">
                                 <i class="bi bi-pencil"></i>
                             </a>
-                            <form action="{{ route('contratantes.destroy', $contratante) }}" method="POST" class="d-inline"
-                                  onsubmit="return confirm('Tem certeza que deseja excluir?')">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="btn btn-outline-danger" title="Excluir">
-                                    <i class="bi bi-trash"></i>
-                                </button>
-                            </form>
+                            <button type="button" 
+                                    class="btn btn-outline-danger btn-delete" 
+                                    title="Excluir"
+                                    data-id="{{ $contratante->id }}"
+                                    data-nome="{{ $contratante->nome }}"
+                                    data-cnpj="{{ $contratante->cnpj }}"
+                                    data-email="{{ $contratante->email }}"
+                                    data-telefone="{{ $contratante->telefone }}">
+                                <i class="bi bi-trash"></i>
+                            </button>
                         </div>
                     </td>
                 </tr>
@@ -93,4 +95,65 @@
 <div class="mt-3 d-flex justify-content-center">
     {{ $contratantes->links('pagination::bootstrap-5') }}
 </div>
+
+<!-- Modal de Confirmação -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+        <div class="modal-header bg-danger text-white">
+            <h5 class="modal-title" id="deleteModalLabel">Confirmar Exclusão</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
+        </div>
+        <div class="modal-body">
+            <p><strong>Deseja realmente excluir este contratante?</strong></p>
+            <ul class="list-group">
+            <li class="list-group-item"><b>Nome:</b> <span id="modalNome"></span></li>
+            <li class="list-group-item"><b>CNPJ:</b> <span id="modalCnpj"></span></li>
+            <li class="list-group-item"><b>Email:</b> <span id="modalEmail"></span></li>
+            <li class="list-group-item"><b>Telefone:</b> <span id="modalTelefone"></span></li>
+            </ul>
+        </div>
+        <div class="modal-footer">
+            <form id="deleteForm" method="POST">
+                @csrf
+                @method('DELETE')
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="submit" class="btn btn-danger">Excluir</button>
+            </form>
+        </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const deleteButtons = document.querySelectorAll(".btn-delete");
+    const modal = new bootstrap.Modal(document.getElementById("deleteModal"));
+    const deleteForm = document.getElementById("deleteForm");
+
+    deleteButtons.forEach(button => {
+        button.addEventListener("click", function () {
+            const id = this.getAttribute("data-id");
+            const nome = this.getAttribute("data-nome");
+            const cnpj = this.getAttribute("data-cnpj");
+            const email = this.getAttribute("data-email");
+            const telefone = this.getAttribute("data-telefone");
+
+            // Preenche os dados no modal
+            document.getElementById("modalNome").textContent = nome;
+            document.getElementById("modalCnpj").textContent = cnpj;
+            document.getElementById("modalEmail").textContent = email;
+            document.getElementById("modalTelefone").textContent = telefone;
+
+            // Define a rota no form
+            deleteForm.action = `/contratantes/${id}`;
+
+            // Abre o modal
+            modal.show();
+        });
+    });
+});
+</script>
+
 @endsection

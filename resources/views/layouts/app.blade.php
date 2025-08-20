@@ -11,8 +11,48 @@
         <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
         <!-- Bootstrap JS (v5) -->
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" defer></script>
+        <style>
+        /* Loader */
+        .loader-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255,255,255,0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+
+        .loader-overlay.d-none {
+            display: none !important;
+        }
+
+        .spinner {
+            border: 8px solid #f3f3f3;
+            border-top: 8px solid #004080; /* azul marinho */
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+
 </head>
     <body>
+        <!-- Loader -->
+        <div id="loader" class="loader-overlay d-none">
+            <div class="spinner"></div>
+        </div>
+
+
         @unless (Route::is('login') || Route::is('password.request') || Route::is('password.reset'))
             <nav class="navbar navbar-expand-lg bg-body-tertiary">
                 <div class="container-fluid">
@@ -48,5 +88,32 @@
             @yield('content')
         </div>
 
+
+        <script>
+            function showLoader() {
+                document.getElementById('loader').classList.remove('d-none');
+            }
+
+            function hideLoader() {
+                document.getElementById('loader').classList.add('d-none');
+            }
+
+            // Mostra loader ao enviar formulários
+            document.addEventListener("DOMContentLoaded", function() {
+                let forms = document.querySelectorAll("form");
+                forms.forEach(form => {
+                    form.addEventListener("submit", function() {
+                        showLoader();
+                    });
+                });
+            });
+
+            // Mostra loader em links com classe "with-loader"
+            document.addEventListener("click", function(e) {
+                if(e.target.classList.contains("with-loader")) {
+                    showLoader();
+                }
+            });
+        </script>
     </body>
 </html>

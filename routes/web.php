@@ -58,6 +58,7 @@ Route::middleware(['auth', 'gerente', 'prevent-back-history'])->prefix('gerente'
     Route::resource('gerentes', GerenteController::class)->only([
         'index', 'create', 'store', 'edit', 'update', 'destroy'
     ]);
+    Route::delete('/gerentes/{id}', [GerenteController::class, 'destroy'])->name('gerentes.destroy');
 });
 
 // Rota para gerar relatório do mês referente ao contratante

@@ -32,15 +32,70 @@
                     <td>{{ $gerente->email }}</td>
                     <td>
                         <a href="{{ route('gerentes.edit', $gerente) }}" class="btn btn-sm btn-warning">Editar</a>
-                        <form action="{{ route('gerentes.destroy', $gerente) }}" method="POST" class="d-inline" onsubmit="return confirm('Tem certeza que deseja excluir?')">
-                            @csrf
-                            @method('DELETE')
-                            <button class="btn btn-sm btn-danger">Excluir</button>
-                        </form>
+                        <button type="button" 
+                                class="btn btn-sm btn-danger btn-delete-gerente"
+                                data-id="{{ $gerente->id }}"
+                                data-nome="{{ $gerente->nome }}"
+                                data-email="{{ $gerente->email }}">
+                            Excluir
+                        </button>
                     </td>
                 </tr>
             @endforeach
         </tbody>
     </table>
 </div>
+
+<!-- Modal de Confirmação (Gerentes) -->
+<div class="modal fade" id="deleteGerenteModal" tabindex="-1" aria-labelledby="deleteGerenteLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+        <div class="modal-header bg-danger text-white">
+            <h5 class="modal-title" id="deleteGerenteLabel">Confirmar Exclusão</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
+        </div>
+        <div class="modal-body">
+            <p><strong>Deseja realmente excluir este gerente?</strong></p>
+            <ul class="list-group">
+            <li class="list-group-item"><b>Nome:</b> <span id="modalGerenteNome"></span></li>
+            <li class="list-group-item"><b>Email:</b> <span id="modalGerenteEmail"></span></li>
+            </ul>
+        </div>
+        <div class="modal-footer">
+            <form id="deleteGerenteForm" method="POST">
+                @csrf
+                @method('DELETE')
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="submit" class="btn btn-danger">Excluir</button>
+            </form>
+        </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const deleteButtons = document.querySelectorAll(".btn-delete-gerente");
+    const modal = new bootstrap.Modal(document.getElementById("deleteGerenteModal"));
+    const deleteForm = document.getElementById("deleteGerenteForm");
+
+    deleteButtons.forEach(button => {
+        button.addEventListener("click", function () {
+            const id = this.getAttribute("data-id");
+            const nome = this.getAttribute("data-nome");
+            const email = this.getAttribute("data-email");
+
+            // Preenche os dados no modal
+            document.getElementById("modalGerenteNome").textContent = nome;
+            document.getElementById("modalGerenteEmail").textContent = email;
+
+            // Define a rota do form dinamicamente
+            deleteForm.action = "{{ url('gerente/gerentes') }}/" + id;
+
+            // Abre o modal
+            modal.show();
+        });
+    });
+});
+</script>
 @endsection
