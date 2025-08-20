@@ -12,9 +12,10 @@
         </div>
     @endif
 
-    <div class="mb-3 d-flex justify-content-between">
-        <a href="{{ route('gerentes.dashboard') }}" class="btn btn-secondary">Voltar</a>
-        <a href="{{ route('funcionarios.create') }}" class="btn btn-primary">Novo Funcionário</a>
+    <div class="d-flex justify-content-end align-items-center gap-2 mb-4">
+        <a href="{{ route('gerentes.dashboard') }}" class="btn btn-outline-secondary fw-semibold">Voltar</a>
+        <a href="{{ route('funcionarios.create') }}" class="btn btn-primary fw-semibold">Novo Funcionário</a>
+        <a href="{{ route('funcionarios.desativados') }}" class="btn btn-warning fw-semibold">Funcionários Desativados</a>
     </div>
 
     <table class="table table-bordered">

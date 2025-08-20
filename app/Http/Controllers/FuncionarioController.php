@@ -14,7 +14,9 @@ class FuncionarioController extends Controller
     public function index()
     {
         try {
-            $funcionarios = User::where('perfil', 'funcionario')->get();
+            $funcionarios = User::where('perfil', 'funcionario')
+                            ->where('status', 'ativo') // Apenas funcionários ativos
+                            ->get();
             return view('funcionarios.index', compact('funcionarios'));
         } catch (\Exception $e) {
             return back()->with('error', 'Erro ao carregar funcionários: ' . $e->getMessage());
@@ -43,10 +45,7 @@ class FuncionarioController extends Controller
                 ],
             ]);
 
-            // Gera senha aleatória
             $senhaAleatoria = Str::random(12);
-
-            // Normalização dos dados
             $nomeNormalizado = ucwords(mb_strtolower(trim($request->nome), 'UTF-8'));
             $emailNormalizado = mb_strtolower(trim($request->email), 'UTF-8');
 
@@ -55,9 +54,9 @@ class FuncionarioController extends Controller
                 'email' => $emailNormalizado,
                 'password' => Hash::make($senhaAleatoria),
                 'perfil' => 'funcionario',
+                'status' => 'ativo', // garante que o funcionário é criado como ativo
             ]);
 
-            // Envia e-mail de redefinição de senha
             Password::sendResetLink(['email' => $user->email]);
 
             return redirect()->route('funcionarios.index')->with('success', 'Funcionário criado com sucesso.');
@@ -73,12 +72,13 @@ class FuncionarioController extends Controller
         try {
             $user = User::findOrFail($id);
             if ($user->perfil === 'funcionario') {
-                $user->delete();
-                return redirect()->route('funcionarios.index')->with('success', 'Funcionário excluído.');
+                $user->status = 'inativo'; // apenas inativa o funcionário
+                $user->save();
+                return redirect()->route('funcionarios.index')->with('success', 'Funcionário desativado.');
             }
             abort(403);
         } catch (\Exception $e) {
-            return back()->with('error', 'Erro ao excluir funcionário: ' . $e->getMessage());
+            return back()->with('error', 'Erro ao desativar funcionário: ' . $e->getMessage());
         }
     }
 
@@ -116,7 +116,7 @@ class FuncionarioController extends Controller
     public function dashboard(Request $request)
     {
         try {
-            $query = Contratante::query();
+            $query = Contratante::where('status', 'ativo'); // Apenas ativos
 
             // Captura os valores do formulário
             $search = $request->input('search');
@@ -147,5 +147,32 @@ class FuncionarioController extends Controller
         } catch (\Exception $e) {
             return back()->with('error', 'Erro ao carregar dashboard: ' . $e->getMessage());
         }
+    }
+
+    public function desativados()
+    {
+        // Apenas gerente pode acessar
+        if (!auth()->user() || auth()->user()->perfil !== 'gerente') {
+            abort(403);
+        }
+
+        $funcionarios = User::where('perfil', 'funcionario')
+                            ->where('status', 'inativo')
+                            ->get();
+
+        return view('funcionarios.desativados', compact('funcionarios'));
+    }
+
+    public function reativar($id)
+    {
+        if (!auth()->user() || auth()->user()->perfil !== 'gerente') {
+            abort(403);
+        }
+
+        $funcionario = User::where('perfil', 'funcionario')->findOrFail($id);
+        $funcionario->status = 'ativo';
+        $funcionario->save();
+
+        return redirect()->route('funcionarios.desativados')->with('success', 'Funcionário reativado com sucesso.');
     }
 }

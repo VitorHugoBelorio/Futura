@@ -20,6 +20,7 @@
             <a href="{{ route('contratantes.create') }}" class="btn btn-primary">Novo Contratante</a>
             <a href="{{ route('funcionarios.index') }}" class="btn btn-outline-secondary">Funcionários</a>
             <a href="{{ route('gerentes.index') }}" class="btn btn-outline-success">Gerentes</a>
+            <a href="{{ route('contratantes.desativados') }}" class="btn btn-warning fw-semibold">Contratantes Desativados</a>
         </div>
     </div>
 

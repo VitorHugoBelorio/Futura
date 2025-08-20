@@ -17,6 +17,7 @@ return new class extends Migration {
             $table->enum('perfil', ['gerente', 'funcionario', 'contratante']);
             $table->rememberToken()->nullable();
             $table->timestamps();
+            $table->enum('status', ['ativo', 'inativo'])->default('ativo');
         });
     }
 

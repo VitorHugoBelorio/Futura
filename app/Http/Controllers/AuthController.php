@@ -26,6 +26,14 @@ class AuthController extends Controller
 
             $user = Auth::user(); 
 
+            // Validação do status do usuário
+            if ($user->status !== 'ativo') {
+                Auth::logout();
+                return redirect()->route('login')->withErrors([
+                    'error' => 'Conta desativada. Entre em contato com o administrador.',
+                ]);
+            }
+
             if ($user->perfil === 'contratante') {
                 // Encontra o contratante com o mesmo email do user logado
                 $contratante = Contratante::where('email', $user->email)->first();

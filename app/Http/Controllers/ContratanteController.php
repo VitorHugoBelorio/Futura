@@ -23,7 +23,7 @@ class ContratanteController extends Controller
     public function index()
     {
         try {
-            $contratantes = Contratante::all();
+            $contratantes = Contratante::where('status', 'ativo')->get();
         } catch (\Exception $e) {
             return back()->with('error', 'Erro ao buscar contratantes: ' . $e->getMessage());
         }
@@ -95,6 +95,11 @@ class ContratanteController extends Controller
 
     public function show(Contratante $contratante, Request $request)
     {
+        if ($contratante->status !== 'ativo') {
+            return back()->with('error', 'Este contratante está inativo.');
+        }
+
+
         session(['contratante_id' => $contratante->id]);
         config(['database.connections.tenant_temp.database' => $contratante->banco_dados]);
 
@@ -138,6 +143,10 @@ class ContratanteController extends Controller
 
     public function edit(Contratante $contratante)
     {
+        if ($contratante->status !== 'ativo') {
+            return back()->with('error', 'Não é possível editar um contratante inativo.');
+        }
+
         try {
             return view('contratantes.edit', compact('contratante'));
         } catch (\Exception $e) {
@@ -147,6 +156,10 @@ class ContratanteController extends Controller
 
     public function update(Request $request, Contratante $contratante)
     {
+        if ($contratante->status !== 'ativo') {
+            return back()->with('error', 'Não é possível atualizar um contratante inativo.');
+        }
+
         try {
             $request->merge([
                 'cnpj' => preg_replace('/\D/', '', $request->cnpj)
@@ -188,20 +201,56 @@ class ContratanteController extends Controller
     public function destroy(Contratante $contratante)
     {
         try {
-            $nomeBanco = $contratante->banco_dados;
+            // Atualiza status para inativo
+            $contratante->status = 'inativo';
+            $contratante->save();
 
-            DB::table('users')->where('email', $contratante->email)->delete();
-
-            $contratante->delete();
-
-            DB::statement("DROP DATABASE IF EXISTS `$nomeBanco`");
+            // Também inativa o usuário vinculado
+            if ($contratante->user_id) {
+                $user = User::find($contratante->user_id);
+                if ($user) {
+                    $user->status = 'inativo';
+                    $user->save();
+                }
+            }
 
             return redirect()->route('gerentes.dashboard')
-                            ->with('success', 'Contratante e banco de dados removidos com sucesso!');
+                            ->with('success', 'Contratante desativado com sucesso!');
         } catch (\Exception $e) {
             return redirect()->route('gerentes.dashboard')
-                            ->with('error', 'Erro ao excluir contratante: ' . $e->getMessage());
+                            ->with('error', 'Erro ao desativar contratante: ' . $e->getMessage());
         }
     }
 
+    public function desativados()
+    {
+        if (!auth()->user() || auth()->user()->perfil !== 'gerente') {
+            abort(403);
+        }
+
+        $contratantes = Contratante::where('status', 'inativo')->get();
+        return view('contratantes.desativados', compact('contratantes'));
+    }
+
+    public function reativar($id)
+    {
+        if (!auth()->user() || auth()->user()->perfil !== 'gerente') {
+            abort(403);
+        }
+
+        $contratante = Contratante::findOrFail($id);
+        $contratante->status = 'ativo';
+        $contratante->save();
+
+        // Reativa também o usuário vinculado, se existir
+        if ($contratante->user_id) {
+            $user = User::find($contratante->user_id);
+            if ($user) {
+                $user->status = 'ativo';
+                $user->save();
+            }
+        }
+
+        return redirect()->route('contratantes.desativados')->with('success', 'Contratante reativado com sucesso!');
+    }
 }

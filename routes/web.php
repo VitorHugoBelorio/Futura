@@ -35,8 +35,7 @@ Route::get('/funcionario/dashboard', [FuncionarioController::class, 'dashboard']
 Route::get('/selecionar-contratante', [ContratoAtivoController::class, 'index'])->name('selecionar.contratante');
 Route::post('/selecionar-contratante', [ContratoAtivoController::class, 'definir'])->name('selecionar.contratante.definir');
 
-// Contratantes (sem tenant middleware)
-Route::resource('contratantes', ContratanteController::class);
+
 
 // Rotas autenticadas sem banco tenant
 Route::middleware(['auth', 'prevent-back-history'])->group(function () {
@@ -71,3 +70,18 @@ Route::post('forgot-password', [ResetPasswordController::class, 'sendResetLink']
 
 Route::get('reset-password/{token}', [ResetPasswordController::class, 'showResetForm'])->name('password.reset');
 Route::post('reset-password', [ResetPasswordController::class, 'resetPassword'])->name('password.update');
+
+// Funcionario desativados
+Route::get('/funcionarios/desativados', [FuncionarioController::class, 'desativados'])->name('funcionarios.desativados');
+Route::post('/funcionarios/{id}/reativar', [FuncionarioController::class, 'reativar'])->name('funcionarios.reativar');
+
+// Gerentes desativados
+Route::get('/gerentes/desativados', [GerenteController::class, 'desativados'])->name('gerentes.desativados');
+Route::post('/gerentes/{id}/reativar', [GerenteController::class, 'reativar'])->name('gerentes.reativar');
+
+// Contratantes desativados
+Route::get('/contratantes/desativados', [ContratanteController::class, 'desativados'])->name('contratantes.desativados');
+Route::post('/contratantes/{id}/reativar', [ContratanteController::class, 'reativar'])->name('contratantes.reativar');
+
+// Contratantes (sem tenant middleware) -> ele não pode estar antes das rotas que trazem os contratantes desativados.
+Route::resource('contratantes', ContratanteController::class);

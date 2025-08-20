@@ -15,7 +15,9 @@ class GerenteController extends Controller
     public function index()
     {
         try {
-            $gerentes = User::where('perfil', 'gerente')->get();
+            $gerentes = User::where('perfil', 'gerente')
+                            ->where('status', 'ativo') // Apenas gerentes ativos
+                            ->get();
             return view('gerentes.index', compact('gerentes'));
         } catch (\Exception $e) {
             return back()->with('error', 'Erro ao carregar gerentes: ' . $e->getMessage());
@@ -44,10 +46,7 @@ class GerenteController extends Controller
                 ],
             ]);
 
-            // Gera senha aleatória
             $senhaAleatoria = Str::random(12);
-
-            // Normalização dos dados
             $nomeNormalizado = ucwords(mb_strtolower(trim($request->nome), 'UTF-8'));
             $emailNormalizado = mb_strtolower(trim($request->email), 'UTF-8');
 
@@ -56,6 +55,7 @@ class GerenteController extends Controller
                 'email' => $emailNormalizado,
                 'password' => Hash::make($senhaAleatoria),
                 'perfil' => 'gerente',
+                'status' => 'ativo', // garante que o gerente é criado como ativo
             ]);
 
             Password::sendResetLink(['email' => $user->email]);
@@ -73,12 +73,13 @@ class GerenteController extends Controller
         try {
             $user = User::findOrFail($id);
             if ($user->perfil === 'gerente') {
-                $user->delete();
-                return redirect()->route('gerentes.index')->with('success', 'Gerente excluído.');
+                $user->status = 'inativo'; // apenas inativa o gerente
+                $user->save();
+                return redirect()->route('gerentes.index')->with('success', 'Gerente desativado.');
             }
             abort(403);
         } catch (\Exception $e) {
-            return back()->with('error', 'Erro ao excluir gerente: ' . $e->getMessage());
+            return back()->with('error', 'Erro ao desativar gerente: ' . $e->getMessage());
         }
     }
 
@@ -117,7 +118,7 @@ class GerenteController extends Controller
     public function dashboard(Request $request)
     {
         try {
-            $query = Contratante::query();
+            $query = Contratante::where('status', 'ativo'); // Apenas ativos
 
             // Captura os valores do formulário
             $search = $request->input('search');
@@ -168,5 +169,32 @@ class GerenteController extends Controller
         } catch (\Exception $e) {
             return back()->with('error', 'Erro ao carregar gerentes: ' . $e->getMessage());
         }
+    }
+
+    public function desativados()
+    {
+        // Apenas gerente pode acessar
+        if (!auth()->user() || auth()->user()->perfil !== 'gerente') {
+            abort(403);
+        }
+
+        $gerentes = User::where('perfil', 'gerente')
+                        ->where('status', 'inativo')
+                        ->get();
+
+        return view('gerentes.desativados', compact('gerentes'));
+    }
+
+    public function reativar($id)
+    {
+        if (!auth()->user() || auth()->user()->perfil !== 'gerente') {
+            abort(403);
+        }
+
+        $gerente = User::where('perfil', 'gerente')->findOrFail($id);
+        $gerente->status = 'ativo';
+        $gerente->save();
+
+        return redirect()->route('gerentes.desativados')->with('success', 'Gerente reativado com sucesso.');
     }
 }
