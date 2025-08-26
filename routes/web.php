@@ -12,6 +12,10 @@ use App\Http\Controllers\GerenteController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardContratanteController;
 use App\Http\Controllers\ResetPasswordController;
+use App\Http\Controllers\ChatController;
+use Illuminate\Http\Request;
+use Prism\Prism\Prism;
+use Prism\Prism\Enums\Provider;
 
 Route::get('/', function () {
     return view('welcome');
@@ -86,3 +90,7 @@ Route::post('/contratantes/{id}/reativar', [ContratanteController::class, 'reati
 
 // Contratantes (sem tenant middleware) -> ele não pode estar antes das rotas que trazem os contratantes desativados.
 Route::resource('contratantes', ContratanteController::class);
+
+// Rotas para o chat com IA
+Route::get('/chat', [ChatController::class, 'index'])->name('chat.index');
+Route::post('/chat', [ChatController::class, 'send'])->name('chat.send');
