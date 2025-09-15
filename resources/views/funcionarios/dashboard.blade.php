@@ -5,6 +5,7 @@
     <div class="text-center mb-5">
         <h1 class="fw-bold">Seja bem vindo(a), {{ auth()->user()->nome }}</h1>
         <p class="text-muted">Visualize e edite informações dos contratantes.</p>
+        <a href="{{ route('gemini.index') }}" class="btn btn-outline-primary fw-semibold">Agente IA</a>
     </div>
 
     {{-- Barra de pesquisa e filtro --}}

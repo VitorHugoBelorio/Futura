@@ -21,7 +21,7 @@
             <a href="{{ route('funcionarios.index') }}" class="btn btn-outline-secondary">Funcionários</a>
             <a href="{{ route('gerentes.index') }}" class="btn btn-outline-success">Gerentes</a>
             <a href="{{ route('contratantes.desativados') }}" class="btn btn-warning fw-semibold">Contratantes Desativados</a>
-            <a href="{{ route('chat.index') }}" class="btn btn-outline-primary fw-semibold">Agente IA</a>
+            <a href="{{ route('gemini.index') }}" class="btn btn-outline-primary fw-semibold">Agente IA</a>
         </div>
     </div>
 

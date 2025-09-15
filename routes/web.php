@@ -16,6 +16,7 @@ use App\Http\Controllers\ChatController;
 use Illuminate\Http\Request;
 use Prism\Prism\Prism;
 use Prism\Prism\Enums\Provider;
+use App\Http\Controllers\GeminiController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -92,5 +93,14 @@ Route::post('/contratantes/{id}/reativar', [ContratanteController::class, 'reati
 Route::resource('contratantes', ContratanteController::class);
 
 // Rotas para o chat com IA
-Route::get('/chat', [ChatController::class, 'index'])->name('chat.index');
-Route::post('/chat', [ChatController::class, 'send'])->name('chat.send');
+//Route::get('/chat', [ChatController::class, 'index'])->name('chat.index');
+//Route::post('/chat', [ChatController::class, 'send'])->name('chat.send');
+
+// Exibe a tela do chat
+Route::get('/gemini', function () {
+    return view('gemini.index');
+})->name('gemini.index');
+
+// Faz a chamada ao Gemini
+Route::post('/gemini/ask', [GeminiController::class, 'ask'])->name('gemini.ask');
+Route::get('/gemini/modelos', [\App\Http\Controllers\GeminiController::class, 'listarModelos']);
