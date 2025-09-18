@@ -11,7 +11,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Support\Facades\Log;
+
 
 class ProvisionarBancoContratante implements ShouldQueue
 {
@@ -19,7 +19,6 @@ class ProvisionarBancoContratante implements ShouldQueue
 
     public $contratanteId;
     public $userId;
-    public $tries = 3; // Número de tentativas
 
     public function __construct(int $contratanteId, int $userId)
     {
@@ -29,39 +28,25 @@ class ProvisionarBancoContratante implements ShouldQueue
 
     public function handle()
     {
-        try {
-            $contratante = Contratante::findOrFail($this->contratanteId);
-            $user = User::findOrFail($this->userId);
+        $contratante = Contratante::findOrFail($this->contratanteId);
+        $user = User::findOrFail($this->userId);
 
-            // Criar banco
-            $nomeBanco = 'tenant_' . $contratante->id;
-            Log::info("Criando banco de dados: {$nomeBanco}");
-            
-            // Usar credenciais do root para criar o banco
-            DB::statement("CREATE DATABASE IF NOT EXISTS `$nomeBanco`");
+        // Criar banco
+        $nomeBanco = (string) $contratante->id;
+        DB::statement("CREATE DATABASE `$nomeBanco`");
 
-            $contratante->update(['banco_dados' => $nomeBanco]);
+        $contratante->update(['banco_dados' => $nomeBanco]);
 
-            // Rodar migrations
-            Log::info("Executando migrações para o banco: {$nomeBanco}");
-            config(['database.connections.tenant_temp.database' => $nomeBanco]);
-            Artisan::call('migrate', [
-                '--path' => 'database/migrations/tenant',
-                '--database' => 'tenant_temp',
-                '--force' => true,
-            ]);
-            
-            Log::info("Migrações concluídas para: {$nomeBanco}");
+        // Rodar migrations
+        config(['database.connections.tenant_temp.database' => $nomeBanco]);
+        Artisan::call('migrate', [
+            '--path' => 'database/migrations/tenant',
+            '--database' => 'tenant_temp',
+            '--force' => true,
+        ]);
 
-            // Enviar e-mail
-            Log::info("Enviando e-mail para: {$user->email}");
-            Password::sendResetLink(['email' => $user->email]);
-            Log::info("E-mail enviado com sucesso");
-            
-        } catch (\Exception $e) {
-            Log::error("Erro ao provisionar banco: " . $e->getMessage());
-            throw $e;
-        }
+        // Enviar e-mail
+        Password::sendResetLink(['email' => $user->email]);
     }
 }
 
