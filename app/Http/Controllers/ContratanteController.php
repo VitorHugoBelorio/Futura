@@ -44,14 +44,30 @@ class ContratanteController extends Controller
 
             $request->validate([
                 'nome' => 'required|string|max:255',
-                'cnpj' => 'required|string|max:18|unique:contratantes,cnpj',
+                'cnpj' => [
+                    'required',
+                    'string',
+                    'max:18',
+                    'unique:contratantes,cnpj' . (isset($contratante) ? ',' . $contratante->id : ''),
+                    function ($attribute, $value, $fail) {
+                        // Validação básica de CNPJ (você pode usar uma função mais robusta)
+                        if (!preg_match('/^\d{14}$/', $value)) {
+                            $fail('CNPJ inválido.');
+                        }
+                    }
+                ],
                 'email' => [
                     'required',
                     'email',
-                    'unique:users,email', // Garante que não existe em users
-                    'unique:contratantes,email', // Garante que não existe em contratantes
+                    'unique:users,email' . (isset($contratante) ? ',' . $contratante->user_id : ''),
+                    'unique:contratantes,email' . (isset($contratante) ? ',' . $contratante->id : ''),
                 ],
-                'telefone' => 'nullable|string|max:20',
+                'telefone' => [
+                    'nullable',
+                    'string',
+                    'max:20',
+                    'regex:/^\(?\d{2}\)?[\s-]?\d{4,5}-?\d{4}$/', // Exemplo: (11) 91234-5678 ou 11912345678
+                ],
             ]);
 
             // Verifica se o e-mail já existe na tabela users
@@ -166,10 +182,30 @@ class ContratanteController extends Controller
             ]);
 
             $request->validate([
-                'nome'     => 'required|string|max:255',
-                'cnpj'     => 'required|string|max:18|unique:contratantes,cnpj,' . $contratante->id,
-                'email'    => 'required|email|unique:contratantes,email,' . $contratante->id,
-                'telefone' => 'nullable|string|max:20',
+                'nome' => 'required|string|max:255',
+                'cnpj' => [
+                    'required',
+                    'string',
+                    'max:18',
+                    'unique:contratantes,cnpj,' . $contratante->id,
+                    function ($attribute, $value, $fail) {
+                        if (!preg_match('/^\d{14}$/', $value)) {
+                            $fail('CNPJ inválido.');
+                        }
+                    }
+                ],
+                'email' => [
+                    'required',
+                    'email',
+                    'unique:users,email,' . $contratante->user_id,
+                    'unique:contratantes,email,' . $contratante->id,
+                ],
+                'telefone' => [
+                    'nullable',
+                    'string',
+                    'max:20',
+                    'regex:/^\(?\d{2}\)?[\s-]?\d{4,5}-?\d{4}$/',
+                ],
             ]);
 
             $contratante->update([

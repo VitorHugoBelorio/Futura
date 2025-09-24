@@ -18,7 +18,7 @@
                         } elseif ($user->perfil === 'funcionario') {
                             $dashboardRoute = route('funcionarios.dashboard');
                         } elseif ($user->perfil === 'contratante') {
-                            $dashboardRoute = route('contratantes.dashboard');
+                            $dashboardRoute = route('contratante.dashboard');
                         }
                     }
                 @endphp

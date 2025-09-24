@@ -36,37 +36,53 @@ class GerenteController extends Controller
     public function store(Request $request)
     {
         try {
+            $request->merge([
+                'nome' => trim($request->nome),
+                'email' => strtolower(trim      ($request->email)),
+            ]);
+
             $request->validate([
-                'nome' => 'required',
+                'nome' => [
+                    'required',
+                    'string',
+                    'max:255',
+                    'regex:/^[A-Za-zÀ-ú\s]+$/u',
+                ],
                 'email' => [
                     'required',
                     'email',
                     'max:255',
                     'unique:users,email',
                 ],
+            ], [
+                'nome.required' => 'O nome é obrigatório.',
+                'nome.regex' => 'O nome deve conter apenas letras e espaços.',
+                'email.required' => 'O e-mail é obrigatório.',
+                'email.email' => 'Digite um e-mail válido.',
+                'email.unique' => 'Este e-mail já está cadastrado no sistema.',
             ]);
 
             $senhaAleatoria = Str::random(12);
-            $nomeNormalizado = ucwords(mb_strtolower(trim($request->nome), 'UTF-8'));
-            $emailNormalizado = mb_strtolower(trim($request->email), 'UTF-8');
+            $nomeNormalizado = ucwords(mb_strtolower($request->nome, 'UTF-8'));
+            $emailNormalizado = mb_strtolower($request->email, 'UTF-8');
 
             $user = User::create([
                 'nome' => $nomeNormalizado,
                 'email' => $emailNormalizado,
                 'password' => Hash::make($senhaAleatoria),
                 'perfil' => 'gerente',
-                'status' => 'ativo', // garante que o gerente é criado como ativo
+                'status' => 'ativo', 
             ]);
 
             Password::sendResetLink(['email' => $user->email]);
 
             return redirect()->route('gerentes.index')->with('success', 'Gerente criado com sucesso.');
         } catch (\Illuminate\Validation\ValidationException $e) {
-            return back()->withErrors(['email' => 'Este e-mail já está cadastrado no sistema.'])->withInput();
+            return back()->withErrors($e->validator->errors())->withInput();
         } catch (\Exception $e) {
-            return back()->with('error', 'Erro ao criar gerente: ' . $e->getMessage());
+                return back()->with('error', 'Erro ao criar gerente: ' . $e->getMessage());
+            }
         }
-    }
 
     public function destroy($id)
     {
@@ -98,18 +114,41 @@ class GerenteController extends Controller
         try {
             $gerente = User::where('perfil', 'gerente')->findOrFail($id);
 
-            $request->validate([
-                'nome' => 'required',
-                'email' => 'required|email|unique:users,email,' . $gerente->id,
+            $request->merge([
+                'nome' => trim($request->nome),
+                'email' => strtolower(trim($request->email)),
             ]);
 
-            // Normalização
-            $gerente->nome = ucwords(mb_strtolower(trim($request->nome), 'UTF-8'));
-            $gerente->email = mb_strtolower(trim($request->email), 'UTF-8');
+        $request->validate([
+            'nome' => [
+                'required',
+                'string',
+                'max:255',
+                'regex:/^[A-Za-zÀ-ú\s]+$/u',
+            ],
+            'email' => [
+                'required',
+                'email',
+                'max:255',
+                'unique:users,email,' . $gerente->id,
+            ],
+        ], [
+            'nome.required' => 'O nome é obrigatório.',
+            'nome.regex' => 'O nome deve conter apenas letras e espaços.',
+            'email.required' => 'O e-mail é obrigatório.',
+            'email.email' => 'Digite um e-mail válido.',
+            'email.unique' => 'Este e-mail já está cadastrado no sistema.',
+        ]);
 
-            $gerente->save();
+        $gerente->nome = ucwords(mb_strtolower($request->nome, 'UTF-8'));
+        $gerente->email = mb_strtolower($request->email, 'UTF-8');
+        $gerente->save();
+
 
             return redirect()->route('gerentes.index')->with('success', 'Gerente atualizado com sucesso.');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+             // Retorna as mensagens configuradas no validate
+            return back()->withErrors($e->validator->errors())->withInput();
         } catch (\Exception $e) {
             return back()->with('error', 'Erro ao atualizar gerente: ' . $e->getMessage());
         }

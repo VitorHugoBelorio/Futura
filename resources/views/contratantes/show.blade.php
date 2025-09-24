@@ -49,14 +49,28 @@
         <ul class="list-group list-group-flush mb-4 border rounded shadow-sm">
             @foreach($fornecedores as $fornecedor)
                 <li class="list-group-item d-flex justify-content-between align-items-center">
-                    {{ $fornecedor->nome }}
-                    <span class="text-muted small">{{ $fornecedor->cnpj }}</span>
+                    <div>
+                        <strong>{{ $fornecedor->nome }}</strong><br>
+                        <span class="text-muted small">{{ $fornecedor->cnpj }}</span>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <a href="{{ route('fornecedores.edit', $fornecedor->id) }}" class="btn btn-sm btn-outline-warning">
+                            Editar
+                        </a>
+                        <form action="{{ route('fornecedores.destroy', $fornecedor->id) }}" method="POST"
+                            onsubmit="return confirm('Deseja realmente excluir este fornecedor?')">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="btn btn-sm btn-outline-danger">Excluir</button>
+                        </form>
+                    </div>
                 </li>
             @endforeach
         </ul>
     @else
         <p class="text-muted fst-italic">Nenhum fornecedor cadastrado.</p>
     @endif
+
 
     {{-- Receitas --}}
     <h4 class="mt-4 mb-2 text-success">Receitas</h4>

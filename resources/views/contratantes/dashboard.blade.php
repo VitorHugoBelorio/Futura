@@ -7,7 +7,7 @@
     <a href="{{ route('contratante.relatorio.pdf', request()->all()) }}" class="btn btn-outline-dark mb-3">
         Baixar Relatório PDF
     </a>
-    <a href="{{ route('gemini.index') }}" class="btn btn-outline-primary fw-semibold">Agente IA</a>
+    <a href="{{ route('gemini.index') }}" class="btn btn-outline-primary fw-semibold mb-3">Agente IA</a>
 
     {{-- Filtros --}}
     <form method="GET" action="{{ route('contratante.dashboard') }}" id="filtro-form">

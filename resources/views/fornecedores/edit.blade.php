@@ -6,10 +6,9 @@
 
     @if ($errors->any())
         <div class="alert alert-danger">
-            <strong>Erro!</strong> Verifique os campos abaixo:
             <ul>
-                @foreach ($errors->all() as $erro)
-                    <li>{{ $erro }}</li>
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
                 @endforeach
             </ul>
         </div>

@@ -86,17 +86,16 @@ document.addEventListener("DOMContentLoaded", function () {
             const nome = this.getAttribute("data-nome");
             const email = this.getAttribute("data-email");
 
-            // Preenche os dados no modal
             document.getElementById("modalFuncionarioNome").textContent = nome;
             document.getElementById("modalFuncionarioEmail").textContent = email;
 
-            // Define a rota do form dinamicamente
-            deleteForm.action = `/funcionarios/${id}`;
+            // Ajuste da rota correta
+            deleteForm.action = "{{ route('funcionarios.destroy', ':id') }}".replace(':id', id);
 
-            // Abre o modal
             modal.show();
         });
     });
+
 });
 </script>
 

@@ -35,33 +35,50 @@ class FuncionarioController extends Controller
     public function store(Request $request)
     {
         try {
+            $request->merge([
+                'nome' => trim($request->nome),
+                'email' => strtolower(trim($request->email)),
+            ]);
+
             $request->validate([
-                'nome' => 'required',
+                'nome' => [
+                    'required',
+                    'string',
+                    'max:255',
+                    'regex:/^[A-Za-zÀ-ú\s]+$/u', // Apenas letras e espaços
+                ],
                 'email' => [
                     'required',
                     'email',
                     'max:255',
                     'unique:users,email',
                 ],
+            ], [
+                'nome.required' => 'O nome é obrigatório.',
+                'nome.regex' => 'O nome deve conter apenas letras e espaços.',
+                'email.required' => 'O e-mail é obrigatório.',
+                'email.email' => 'Digite um e-mail válido.',
+                'email.unique' => 'Este e-mail já está cadastrado no sistema.',
             ]);
 
             $senhaAleatoria = Str::random(12);
-            $nomeNormalizado = ucwords(mb_strtolower(trim($request->nome), 'UTF-8'));
-            $emailNormalizado = mb_strtolower(trim($request->email), 'UTF-8');
+            $nomeNormalizado = ucwords(mb_strtolower($request->nome, 'UTF-8'));
+            $emailNormalizado = mb_strtolower($request->email, 'UTF-8');
 
             $user = User::create([
                 'nome' => $nomeNormalizado,
                 'email' => $emailNormalizado,
                 'password' => Hash::make($senhaAleatoria),
                 'perfil' => 'funcionario',
-                'status' => 'ativo', // garante que o funcionário é criado como ativo
+                'status' => 'ativo',
             ]);
 
             Password::sendResetLink(['email' => $user->email]);
 
             return redirect()->route('funcionarios.index')->with('success', 'Funcionário criado com sucesso.');
         } catch (\Illuminate\Validation\ValidationException $e) {
-            return back()->withErrors(['email' => 'Este e-mail já está cadastrado no sistema.'])->withInput();
+             // Retorna as mensagens configuradas no validate
+            return back()->withErrors($e->validator->errors())->withInput();
         } catch (\Exception $e) {
             return back()->with('error', 'Erro ao criar funcionário: ' . $e->getMessage());
         }
@@ -97,17 +114,41 @@ class FuncionarioController extends Controller
         try {
             $funcionario = User::where('perfil', 'funcionario')->findOrFail($id);
 
-            $request->validate([
-                'nome' => 'required',
-                'email' => 'required|email|unique:users,email,' . $funcionario->id,
+            $request->merge([
+                'nome' => trim($request->nome),
+                'email' => strtolower(trim($request->email)),
             ]);
 
-            $funcionario->nome = ucfirst(strtolower(trim($request->nome)));
-            $funcionario->email = strtolower(trim($request->email));
+            $request->validate([
+                'nome' => [
+                    'required',
+                    'string',
+                    'max:255',
+                    'regex:/^[A-Za-zÀ-ú\s]+$/u',
+                ],
+                'email' => [
+                    'required',
+                    'email',
+                    'max:255',
+                    'unique:users,email,' . $funcionario->id,
+                ],
+            ], [
+                'nome.required' => 'O nome é obrigatório.',
+                'nome.regex' => 'O nome deve conter apenas letras e espaços.',
+                'email.required' => 'O e-mail é obrigatório.',
+                'email.email' => 'Digite um e-mail válido.',
+                'email.unique' => 'Este e-mail já está cadastrado no sistema.',
+            ]);
+
+            $funcionario->nome = ucwords(mb_strtolower($request->nome, 'UTF-8'));
+            $funcionario->email = mb_strtolower($request->email, 'UTF-8');
 
             $funcionario->save();
 
             return redirect()->route('funcionarios.index')->with('success', 'Funcionário atualizado com sucesso.');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+             // Retorna as mensagens configuradas no validate
+            return back()->withErrors($e->validator->errors())->withInput();
         } catch (\Exception $e) {
             return back()->with('error', 'Erro ao atualizar funcionário: ' . $e->getMessage());
         }
